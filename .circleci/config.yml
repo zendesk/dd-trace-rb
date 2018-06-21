@@ -115,6 +115,7 @@ build_job: &build_job
         key: 'betav2-bundle-{{ .Environment.CIRCLE_JOB }}-{{ checksum "Gemfile" }}-{{ checksum "Appraisals" }}'
         paths:
           - vendor/bundle
+          - gemfiles/
     - persist_to_workspace:
               root: .
               paths:
@@ -124,14 +125,6 @@ build_job: &build_job
 
 test_job: &test_job
   <<: *job_defaults
-  docker:
-    - *container_postgres
-    - *container_mysql
-    - *container_elasticsearch
-    - *container_redis
-    - *container_mongo
-    - *container_memcached
-    - *container_agent
   steps:
     - checkout
     - attach_workspace:
@@ -139,12 +132,20 @@ test_job: &test_job
     - run: bundle --path vendor/bundle
     - *step_run_all_tests
 
+linting_job: &linting_job
+  <<: *job_defaults
+  steps:
+    - checkout
+    - attach_workspace:
+        at: /app
+    - run: bundle --path vendor/bundle
+    - step_rubocop
+
 jobs:
   build-1.9:
     <<: *build_job
     docker:
       - *container-1_9
-
   test-1.9:
     <<: *test_job
     docker:
@@ -158,7 +159,10 @@ jobs:
       - *container_mongo
       - *container_memcached
       - *container_agent
-
+  lint-1.9:
+    <<: *linting_job
+    docker:
+      - *container-1_9
   build-2.0:
     <<: *build_job
     docker:
@@ -176,6 +180,10 @@ jobs:
       - *container_mongo
       - *container_memcached
       - *container_agent
+  lint-2.0:
+    <<: *linting_job
+    docker:
+      - *container-2_0
   build-2.1:
     <<: *build_job
     docker:
@@ -193,6 +201,10 @@ jobs:
       - *container_mongo
       - *container_memcached
       - *container_agent
+  lint-2.1:
+    <<: *linting_job
+    docker:
+      - *container-2_1
   build-2.2:
     <<: *build_job
     docker:
@@ -210,6 +222,10 @@ jobs:
       - *container_mongo
       - *container_memcached
       - *container_agent
+  lint-2.2:
+    <<: *linting_job
+    docker:
+      - *container-2_2
   build-2.3:
     <<: *build_job
     docker:
@@ -227,6 +243,10 @@ jobs:
       - *container_mongo
       - *container_memcached
       - *container_agent
+  lint-2.3:
+    <<: *linting_job
+    docker:
+      - *container-2_3
   build-2.4:
     <<: *build_job
     docker:
@@ -244,6 +264,10 @@ jobs:
       - *container_mongo
       - *container_memcached
       - *container_agent
+  lint-2.4:
+    <<: *linting_job
+    docker:
+      - *container-2_4
 
   deploy-release:
     <<: *job_defaults
