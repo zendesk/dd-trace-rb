@@ -139,7 +139,7 @@ linting_job: &linting_job
     - attach_workspace:
         at: /app
     - run: bundle --path vendor/bundle
-    - step_rubocop
+    - *step_rubocop
 
 jobs:
   build-1.9:
