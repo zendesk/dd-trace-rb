@@ -330,15 +330,27 @@ workflows:
           <<: *filters_all_branches_and_tags
           requires:
             - build-2.2
+      - lint-2.2:
+          <<: *filters_all_branches_and_tags
+          requires:
+            - build-2.2
       - build-2.3:
           <<: *filters_all_branches_and_tags
       - test-2.3:
           <<: *filters_all_branches_and_tags
           requires:
             - build-2.3
+      - lint-2.3:
+          <<: *filters_all_branches_and_tags
+          requires:
+            - build-2.3
       - build-2.4:
           <<: *filters_all_branches_and_tags
       - test-2.4:
+          <<: *filters_all_branches_and_tags
+          requires:
+            - build-2.4
+      - lint-2.4:
           <<: *filters_all_branches_and_tags
           requires:
             - build-2.4
