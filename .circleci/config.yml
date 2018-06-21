@@ -296,6 +296,10 @@ workflows:
     jobs:
       - build-1.9:
           <<: *filters_all_branches_and_tags
+      - lint-1.9:
+          <<: *filters_all_branches_and_tags
+          requires:
+            - build-1.9
       - test-1.9:
           <<: *filters_all_branches_and_tags
           requires:
@@ -306,9 +310,17 @@ workflows:
           <<: *filters_all_branches_and_tags
           requires:
             - build-2.0
+      - lint-2.0:
+          <<: *filters_all_branches_and_tags
+          requires:
+            - build-2.0
       - build-2.1:
           <<: *filters_all_branches_and_tags
       - test-2.1:
+          <<: *filters_all_branches_and_tags
+          requires:
+            - build-2.1
+      - lint-2.1:
           <<: *filters_all_branches_and_tags
           requires:
             - build-2.1
