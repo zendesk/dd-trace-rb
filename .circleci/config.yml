@@ -110,11 +110,11 @@ jobs:
       - attach_workspace:
           at: /app
       - restore_cache:
-          key: 'v1-bundle-{{ checksum "Gemfile" }}-{{ checksum "Appraisal" }}'
+          key: 'v1-bundle-{{ checksum "Gemfile" }}-{{ checksum "Appraisals" }}'
       - *step_bundle_install
       - *step_appraisal_install
       - save_cache:
-          key: 'v1-bundle-{{ checksum "Gemfile" }}-{{ checksum "Appraisal" }}'
+          key: 'v1-bundle-{{ checksum "Gemfile" }}-{{ checksum "Appraisals" }}'
           paths:
             - /usr/local/bundle
       - persist_to_workspace:
