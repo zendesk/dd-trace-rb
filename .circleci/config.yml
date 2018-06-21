@@ -140,6 +140,7 @@ jobs:
       - checkout
       - attach_workspace:
           at: /app
+      - run: bundle --path vendor/bundle
       - *step_run_all_tests
 #  checkout-2.0:
 #    <<: *job_defaults
