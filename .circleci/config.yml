@@ -110,11 +110,11 @@ jobs:
       - attach_workspace:
           at: /app
       - restore_cache:
-          key: 'betav2-bundle-{{ checksum "Gemfile" }}-{{ checksum "Appraisals" }}'
+          key: 'betav1-bundle-{{ .Environment.CIRCLE_JOB }}-{{ checksum "Gemfile" }}-{{ checksum "Appraisals" }}'
       - *step_bundle_install
       - *step_appraisal_install
       - save_cache:
-          key: 'betav2-bundle-{{ checksum "Gemfile" }}-{{ checksum "Appraisals" }}'
+          key: 'betav1-bundle-{{ .Environment.CIRCLE_JOB }}-{{ checksum "Gemfile" }}-{{ checksum "Appraisals" }}'
           paths:
             - vendor/bundle
       - persist_to_workspace:
