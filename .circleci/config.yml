@@ -101,7 +101,7 @@ filters_only_release_tags: &filters_only_release_tags
 
 version: 2.0
 jobs:
-  build_dependencies:
+  build-1.9:
     <<: *job_defaults
     docker:
       - *container-1_9
