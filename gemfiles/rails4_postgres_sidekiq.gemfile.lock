@@ -9,7 +9,7 @@ GIT
 PATH
   remote: ..
   specs:
-    ddtrace (0.12.0)
+    ddtrace (0.11.4)
       msgpack
 
 GEM
