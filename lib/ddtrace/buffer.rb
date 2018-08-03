@@ -10,7 +10,7 @@ module Datadog
       @max_size = max_size
 
       @mutex = Mutex.new()
-      @btm = ReadWriteLock.new
+      @btm = Concurrent::ReadWriteLock.new
 
       @traces = []
       @closed = false
