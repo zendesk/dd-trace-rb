@@ -52,7 +52,6 @@ module Datadog
     end
 
     def close
-      @btm.value = 1
       @btm.with_write_lock do
         @closed = true
       end
