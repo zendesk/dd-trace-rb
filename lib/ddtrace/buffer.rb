@@ -1,4 +1,5 @@
 require 'thread'
+require 'concurrent'
 
 module Datadog
   # Trace buffer that stores application traces. The buffer has a maximum size and when
@@ -9,6 +10,8 @@ module Datadog
       @max_size = max_size
 
       @mutex = Mutex.new()
+      @btm = ReadWriteLock.new
+
       @traces = []
       @closed = false
     end
@@ -16,9 +19,10 @@ module Datadog
     # Add a new ``trace`` in the local queue. This method doesn't block the execution
     # even if the buffer is full. In that case, a random trace is discarded.
     def push(trace)
-      @mutex.synchronize do
+      @btm.with_read_lock do
         return if @closed
         len = @traces.length
+
         if len < @max_size || @max_size <= 0
           @traces << trace
         else
@@ -30,21 +34,17 @@ module Datadog
 
     # Return the current number of stored traces.
     def length
-      @mutex.synchronize do
-        return @traces.length
-      end
+      @traces.length
     end
 
     # Return if the buffer is empty.
     def empty?
-      @mutex.synchronize do
-        return @traces.empty?
-      end
+      @traces.empty?
     end
 
     # Stored traces are returned and the local buffer is reset.
     def pop
-      @mutex.synchronize do
+      @btm.with_write_lock do
         traces = @traces
         @traces = []
         return traces
@@ -52,7 +52,8 @@ module Datadog
     end
 
     def close
-      @mutex.synchronize do
+      @btm.value = 1
+      @btm.with_write_lock do
         @closed = true
       end
     end
