@@ -1,5 +1,5 @@
 require 'thread'
-require 'concurrent'
+require 'concurrent/atomic/read_write_lock'
 
 module Datadog
   # Trace buffer that stores application traces. The buffer has a maximum size and when

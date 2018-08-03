@@ -485,36 +485,36 @@ workflows:
           <<: *filters_all_branches_and_tags
           requires:
             - build-1.9
-      - checkout-2.0:
-          <<: *filters_all_branches_and_tags
-      - build-2.0:
-          <<: *filters_all_branches_and_tags
-          requires:
-            - checkout-2.0
-      - test-2.0:
-          <<: *filters_all_branches_and_tags
-          requires:
-            - build-2.0
-      - checkout-2.1:
-          <<: *filters_all_branches_and_tags
-      - build-2.1:
-          <<: *filters_all_branches_and_tags
-          requires:
-            - checkout-2.1
-      - test-2.1:
-          <<: *filters_all_branches_and_tags
-          requires:
-            - build-2.1
-      - checkout-2.2:
-          <<: *filters_all_branches_and_tags
-      - build-2.2:
-          <<: *filters_all_branches_and_tags
-          requires:
-            - checkout-2.2
-      - test-2.2:
-          <<: *filters_all_branches_and_tags
-          requires:
-            - build-2.2
+#      - checkout-2.0:
+#          <<: *filters_all_branches_and_tags
+#      - build-2.0:
+#          <<: *filters_all_branches_and_tags
+#          requires:
+#            - checkout-2.0
+#      - test-2.0:
+#          <<: *filters_all_branches_and_tags
+#          requires:
+#            - build-2.0
+#      - checkout-2.1:
+#          <<: *filters_all_branches_and_tags
+#      - build-2.1:
+#          <<: *filters_all_branches_and_tags
+#          requires:
+#            - checkout-2.1
+#      - test-2.1:
+#          <<: *filters_all_branches_and_tags
+#          requires:
+#            - build-2.1
+#      - checkout-2.2:
+#          <<: *filters_all_branches_and_tags
+#      - build-2.2:
+#          <<: *filters_all_branches_and_tags
+#          requires:
+#            - checkout-2.2
+#      - test-2.2:
+#          <<: *filters_all_branches_and_tags
+#          requires:
+#            - build-2.2
       - checkout-2.3:
           <<: *filters_all_branches_and_tags
       - build-2.3:
@@ -529,16 +529,16 @@ workflows:
           <<: *filters_all_branches_and_tags
           requires:
             - build-2.3
-      - checkout-2.4:
-          <<: *filters_all_branches_and_tags
-      - build-2.4:
-          <<: *filters_all_branches_and_tags
-          requires:
-            - checkout-2.4
-      - test-2.4:
-          <<: *filters_all_branches_and_tags
-          requires:
-            - build-2.4
+#      - checkout-2.4:
+#          <<: *filters_all_branches_and_tags
+#      - build-2.4:
+#          <<: *filters_all_branches_and_tags
+#          requires:
+#            - checkout-2.4
+#      - test-2.4:
+#          <<: *filters_all_branches_and_tags
+#          requires:
+#            - build-2.4
       - deploy-release:
           <<: *filters_only_release_tags
           requires:
