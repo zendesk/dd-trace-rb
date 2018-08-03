@@ -1,4 +1,5 @@
 require 'thread'
+require 'concurrent'
 
 module Datadog
   # \Context is used to keep track of a hierarchy of spans for the current
@@ -13,7 +14,6 @@ module Datadog
   # \Context, it will be related to the original trace.
   #
   # This data structure is thread-safe.
-  # rubocop:disable Metrics/ClassLength
   class Context
     # 100k spans is about a 100Mb footprint
     DEFAULT_MAX_LENGTH = 100_000
@@ -22,7 +22,7 @@ module Datadog
 
     # Initialize a new thread-safe \Context.
     def initialize(options = {})
-      @mutex = Mutex.new
+      @btm = Concurrent::ReadWriteLock.new
       # max_length is the amount of spans above which, for a given trace,
       # the context will simply drop and ignore spans, avoiding high memory usage.
       @max_length = options.fetch(:max_length, DEFAULT_MAX_LENGTH)
@@ -30,42 +30,26 @@ module Datadog
     end
 
     def trace_id
-      @mutex.synchronize do
-        @parent_trace_id
-      end
+      @parent_trace_id
     end
 
     def span_id
-      @mutex.synchronize do
-        @parent_span_id
-      end
+      @parent_span_id
     end
 
-    def sampling_priority
-      @mutex.synchronize do
-        @sampling_priority
-      end
-    end
+    attr_reader :sampling_priority
 
-    def sampling_priority=(priority)
-      @mutex.synchronize do
-        @sampling_priority = priority
-      end
-    end
+    attr_writer :sampling_priority
 
     # Return the last active span that corresponds to the last inserted
     # item in the trace list. This cannot be considered as the current active
     # span in asynchronous environments, because some spans can be closed
     # earlier while child spans still need to finish their traced execution.
-    def current_span
-      @mutex.synchronize do
-        return @current_span
-      end
-    end
+    attr_reader :current_span
 
     # Add a span to the context trace list, keeping it as the last active span.
     def add_span(span)
-      @mutex.synchronize do
+      @btm.with_write_lock do
         # If hitting the hard limit, just drop spans. This is really a rare case
         # as it means despite the soft limit, the hard limit is reached, so the trace
         # by default has 10000 spans, all of which belong to unfinished parts of a
@@ -85,7 +69,7 @@ module Datadog
     # Mark a span as a finished, increasing the internal counter to prevent
     # cycles inside _trace list.
     def close_span(span)
-      @mutex.synchronize do
+      @btm.with_write_lock do
         @finished_spans += 1
         # Current span is only meaningful for linear tree-like traces,
         # in other cases, this is just broken and one should rely
@@ -106,17 +90,15 @@ module Datadog
     # Returns if the trace for the current Context is finished or not. A \Context
     # is considered finished if all spans in this context are finished.
     def finished?
-      @mutex.synchronize do
-        return check_finished_spans
+      @btm.with_read_lock do
+        check_finished_spans
       end
     end
 
     # Returns true if the context is sampled, that is, if it should be kept
     # and sent to the trace agent.
     def sampled?
-      @mutex.synchronize do
-        return @sampled
-      end
+      @sampled
     end
 
     # Returns both the trace list generated in the current context and
@@ -126,14 +108,14 @@ module Datadog
     #
     # This operation is thread-safe.
     def get
-      @mutex.synchronize do
+      @btm.with_read_lock do
         trace = @trace
         sampled = @sampled
 
         attach_sampling_priority if sampled && @sampling_priority
 
         # still return sampled attribute, even if context is not finished
-        return nil, sampled unless check_finished_spans()
+        return nil, sampled unless check_finished_spans
 
         reset
         [trace, sampled]
@@ -142,7 +124,7 @@ module Datadog
 
     # Return a string representation of the context.
     def to_s
-      @mutex.synchronize do
+      @btm.with_read_lock do
         # rubocop:disable Metrics/LineLength
         "Context(trace.length:#{@trace.length},sampled:#{@sampled},finished_spans:#{@finished_spans},current_span:#{@current_span})"
       end
@@ -186,7 +168,7 @@ module Datadog
 
     # Return the start time of the root span, or nil if there are no spans or this is undefined.
     def start_time
-      @mutex.synchronize do
+      @btm.with_read_lock do
         return nil if @trace.empty?
         @trace[0].start_time
       end
@@ -194,14 +176,12 @@ module Datadog
 
     # Return the length of the current trace held by this context.
     def length
-      @mutex.synchronize do
-        @trace.length
-      end
+      @trace.length
     end
 
     # Iterate on each span within the trace. This is thread safe.
     def each_span
-      @mutex.synchronize do
+      @btm.with_read_lock do
         @trace.each do |span|
           yield span
         end
@@ -210,7 +190,7 @@ module Datadog
 
     # Delete any span matching the condition. This is thread safe.
     def delete_span_if
-      @mutex.synchronize do
+      @btm.with_write_lock do
         @trace.delete_if do |span|
           finished = span.finished?
           delete_span = yield span
