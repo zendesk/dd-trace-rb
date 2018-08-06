@@ -1,3 +1,5 @@
+GC.disable
+
 ENV['RAILS_ENV'] = 'production'
 require 'English'
 
