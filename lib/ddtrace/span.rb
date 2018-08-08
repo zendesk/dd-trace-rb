@@ -49,8 +49,8 @@ module Datadog
       #
       # @context = options.fetch(:context, nil)
       #
-      # @meta = {}
-      # @metrics = {}
+      @meta = {}
+      @metrics = {}
       @status = 0
 
       @parent = nil
