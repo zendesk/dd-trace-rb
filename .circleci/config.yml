@@ -227,8 +227,8 @@ workflows:
 
       - benchmark-2.3:
           <<: *filters_all_branches_and_tags
-      - test-2.3:
-          <<: *filters_all_branches_and_tags
+#      - test-2.3:
+#          <<: *filters_all_branches_and_tags
 #      - deploy-release:
 #          <<: *filters_only_release_tags
 #          requires:
