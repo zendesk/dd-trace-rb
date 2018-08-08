@@ -143,10 +143,10 @@ jobs:
       - run: *bundler_init
       - run:
           name: Run Benchmark
-          command: bundle exec appraisal rails5-postgres-sidekiq ruby benchmarks/sidekiq_test.rb 2>&1 1> /dev/null | tee benchmark_results.csv
+          command: bundle exec appraisal rails5-postgres-sidekiq ruby benchmarks/sidekiq_test.rb #2>&1 1> /dev/null | tee benchmark_results.csv
       - run:
           name: Run Benchmark without ddtracer
-          command: rm -f lib/ddtrace.rb && bundle exec appraisal rails5-postgres-sidekiq ruby benchmarks/sidekiq_test.rb 2>&1 1> /dev/null | tee benchmark_results.csv
+          command: rm -f lib/ddtrace.rb && bundle exec appraisal rails5-postgres-sidekiq ruby benchmarks/sidekiq_test.rb # 2>&1 1> /dev/null | tee benchmark_results.csv
 
   test-2.4:
     <<: *job_defaults
