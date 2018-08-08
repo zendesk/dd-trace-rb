@@ -35,7 +35,7 @@ module TestConfiguration
     @iteration_count=c
   end
   def iteration_count
-    @iteration_count ||= 500
+    @iteration_count ||= 1000
   end
 end
 
