@@ -101,7 +101,7 @@ filters_only_release_tags: &filters_only_release_tags
 
 aliases:
   - &bundler_cache
-      key: 'betav3-bundle-{{ .Environment.CIRCLE_JOB }}-{{ checksum "Gemfile" }}-{{ checksum "ddtrace.gemspec" }}-{{ checksum "Appraisals" }}'
+      key: 'betav4-bundle-{{ .Environment.CIRCLE_JOB }}-{{ checksum "Gemfile" }}-{{ checksum "ddtrace.gemspec" }}-{{ checksum "Appraisals" }}'
       paths:
         - vendor/bundle
         - gemfiles/
@@ -140,6 +140,9 @@ jobs:
       - *step_bundle_install
       - *step_appraisal_install
       - save_cache: *bundler_cache
+          paths:
+            - vendor/bundle
+            - gemfiles/
       - run: *bundler_init
       - run:
           name: Run Benchmark
@@ -168,7 +171,7 @@ jobs:
       - *step_appraisal_install
       - save_cache: *bundler_cache
       - run: *bundler_init
-      - *step_run_all_tests
+#      - *step_run_all_tests
 
   deploy-release:
     <<: *job_defaults
