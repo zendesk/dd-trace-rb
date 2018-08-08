@@ -38,9 +38,9 @@ module Datadog
                            end
 
             span.resource = payload.fetch(:class_name)
-            span.span_type = 'custom'
-            span.set_tag('active_record.instantiation.class_name', payload.fetch(:class_name))
-            span.set_tag('active_record.instantiation.record_count', payload.fetch(:record_count))
+            span.span_type = 'custom'.freeze
+            span.set_tag('active_record.instantiation.class_name'.freeze, payload.fetch(:class_name))
+            span.set_tag('active_record.instantiation.record_count'.freeze, payload.fetch(:record_count))
           rescue StandardError => e
             Datadog::Tracer.log.debug(e.message)
           end
