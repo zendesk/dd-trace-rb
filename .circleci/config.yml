@@ -132,12 +132,13 @@ jobs:
       - <<: *container-2_3
         environment:
           - TEST_DATADOG_INTEGRATION: 1
-      - *container_postgres
+#      - *container_postgres
       - *container_redis
       - *container_agent
     steps:
       - checkout
       - restore_cache: *bundler_cache
+      - run: *bundler_init
       - *step_bundle_install
       - *step_appraisal_install
       - save_cache:
@@ -146,7 +147,6 @@ jobs:
             - vendor/bundle
             - gemfiles/
             - Gemfile.lock
-      - run: *bundler_init
       - run:
           name: Run Benchmark
           command: bundle exec appraisal rails5-postgres-sidekiq ruby benchmarks/sidekiq_test.rb #2>&1 1> /dev/null | tee benchmark_results.csv
@@ -170,6 +170,7 @@ jobs:
     steps:
       - checkout
       - restore_cache: *bundler_cache
+      - run: *bundler_init
       - *step_bundle_install
       - *step_appraisal_install
       - save_cache: *bundler_cache
