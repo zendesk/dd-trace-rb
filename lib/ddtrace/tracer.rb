@@ -276,6 +276,10 @@ module Datadog
     # * +span_type+: the type of the span (such as \http, \db and so on)
     # * +tags+: extra tags which should be added to the span.
     def trace(name, options = {})
+      span = Span.new(self, name, {})
+      return yield span if block_given?
+      return span
+
       options[:child_of] = call_context
       span = start_span(name, options)
 

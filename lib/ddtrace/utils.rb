@@ -10,7 +10,7 @@ module Datadog
 
     # Return a span id
     def self.next_id
-      reset! if was_forked?
+      # reset! if was_forked?
 
       @rnd.rand(Datadog::Span::MAX_ID)
     end

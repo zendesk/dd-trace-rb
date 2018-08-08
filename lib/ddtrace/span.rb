@@ -39,18 +39,18 @@ module Datadog
       @tracer = tracer
 
       @name = name
-      @service = options.fetch(:service, nil)
-      @resource = options.fetch(:resource, name)
-      @span_type = options.fetch(:span_type, nil)
-
-      @span_id = Datadog::Utils.next_id
-      @parent_id = options.fetch(:parent_id, 0)
-      @trace_id = options.fetch(:trace_id, Datadog::Utils.next_id)
-
-      @context = options.fetch(:context, nil)
-
-      @meta = {}
-      @metrics = {}
+      # @service = options.fetch(:service, nil)
+      # @resource = options.fetch(:resource, name)
+      # @span_type = options.fetch(:span_type, nil)
+      #
+      # @span_id = Datadog::Utils.next_id
+      # @parent_id = options.fetch(:parent_id, 0)
+      # @trace_id = options.fetch(:trace_id, Datadog::Utils.next_id)
+      #
+      # @context = options.fetch(:context, nil)
+      #
+      # @meta = {}
+      # @metrics = {}
       @status = 0
 
       @parent = nil
@@ -65,6 +65,7 @@ module Datadog
     #
     #   span.set_tag('http.method', request.method)
     def set_tag(key, value)
+      return
       @meta[key] = value.to_s
     rescue StandardError => e
       Datadog::Tracer.log.debug("Unable to set the tag #{key}, ignoring it. Caused by: #{e}")
@@ -78,6 +79,7 @@ module Datadog
     # This method sets a tag with a floating point value for the given key. It acts
     # like `set_tag()` and it simply add a tag without further processing.
     def set_metric(key, value)
+      return
       # enforce that the value is a floating point number
       value = Float(value)
       @metrics[key] = value
@@ -92,6 +94,7 @@ module Datadog
 
     # Mark the span with the given error.
     def set_error(e)
+      return
       e = Error.build_from(e)
 
       @status = Ext::Errors::STATUS
@@ -102,6 +105,7 @@ module Datadog
 
     # Mark the span finished at the current time and submit it.
     def finish(finish_time = nil)
+      return
       # A span should not be finished twice. Note that this is not thread-safe,
       # finish is called from multiple threads, a given span might be finished
       # several times. Again, one should not do this, so this test is more a
