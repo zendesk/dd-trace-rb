@@ -49,21 +49,19 @@ module Datadog
 
     # Add a span to the context trace list, keeping it as the last active span.
     def add_span(span)
-      @btm.with_write_lock do
-        # If hitting the hard limit, just drop spans. This is really a rare case
-        # as it means despite the soft limit, the hard limit is reached, so the trace
-        # by default has 10000 spans, all of which belong to unfinished parts of a
-        # larger trace. This is a catch-all to reduce global memory usage.
-        if @max_length > 0 && @trace.length >= @max_length
-          Datadog::Tracer.log.debug("context full, ignoring span #{span.name}")
-          # Detach the span from any context, it's being dropped and ignored.
-          span.context = nil
-          return
-        end
-        set_current_span(span)
-        @trace << span
-        span.context = self
+      # If hitting the hard limit, just drop spans. This is really a rare case
+      # as it means despite the soft limit, the hard limit is reached, so the trace
+      # by default has 10000 spans, all of which belong to unfinished parts of a
+      # larger trace. This is a catch-all to reduce global memory usage.
+      if @max_length > 0 && @trace.length >= @max_length
+        Datadog::Tracer.log.debug("context full, ignoring span #{span.name}")
+        # Detach the span from any context, it's being dropped and ignored.
+        span.context = nil
+        return
       end
+      set_current_span(span)
+      @trace << span
+      span.context = self
     end
 
     # Mark a span as a finished, increasing the internal counter to prevent
