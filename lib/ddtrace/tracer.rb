@@ -280,8 +280,8 @@ module Datadog
       # return yield span if block_given?
       # return span
 
-      Thread.current[:datadog_context] ||= Datadog::Context.new
-      options[:child_of] = Thread.current[:datadog_context]
+      # Thread.current[:datadog_context] ||= Datadog::Context.new
+      # options[:child_of] = Thread.current[:datadog_context]
       span = start_span(name, options)
 
       # call the finish only if a block is given; this ensures
@@ -300,7 +300,7 @@ module Datadog
           span.set_error(e)
           raise e
         ensure
-          # span.finish()
+          span.finish()
         end
       else
         span
