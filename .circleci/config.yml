@@ -101,7 +101,7 @@ filters_only_release_tags: &filters_only_release_tags
 
 aliases:
   - &bundler_cache
-      key: 'betav5-bundle-{{ .Environment.CIRCLE_JOB }}-{{ checksum "Gemfile" }}-{{ checksum "ddtrace.gemspec" }}-{{ checksum "Appraisals" }}'
+      key: 'betav6-bundle-{{ .Environment.CIRCLE_JOB }}-{{ checksum "Gemfile" }}-{{ checksum "ddtrace.gemspec" }}-{{ checksum "Appraisals" }}'
       paths:
         - vendor/bundle
         - gemfiles/
