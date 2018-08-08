@@ -69,7 +69,6 @@ module Datadog
     # Mark a span as a finished, increasing the internal counter to prevent
     # cycles inside _trace list.
     def close_span(span)
-      @btm.with_write_lock do
         @finished_spans += 1
         # Current span is only meaningful for linear tree-like traces,
         # in other cases, this is just broken and one should rely
@@ -84,7 +83,6 @@ module Datadog
             Datadog::Tracer.log.debug("unfinished span: #{s}") unless s.finished?
           end
         end
-      end
     end
 
     # Returns if the trace for the current Context is finished or not. A \Context
