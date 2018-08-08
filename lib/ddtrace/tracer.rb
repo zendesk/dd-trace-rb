@@ -300,7 +300,7 @@ module Datadog
           span.set_error(e)
           raise e
         ensure
-          span.finish()
+          # span.finish()
         end
       else
         span
