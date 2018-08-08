@@ -1,9 +1,24 @@
+#production:
+#  adapter: 'postgresql'
+#  timeout: 5000
+#  database: <%= ENV.fetch('TEST_POSTGRES_DB', 'postgres') %>
+#  host: <%= ENV.fetch('TEST_POSTGRES_HOST', '127.0.0.1') %>
+#  port: <%= ENV.fetch('TEST_POSTGRES_PORT', 5432) %>
+#  username: <%= ENV.fetch('TEST_POSTGRES_USER', 'postgres') %>
+#  password: <%= ENV.fetch('TEST_POSTGRES_PASSWORD', 'postgres') %>
+#  pool: 30
+
+
 production:
-  adapter: 'postgresql'
+  adapter: 'sqlite3'
+#  database: ':memory:'
+  database: 'db/production.db'
   timeout: 5000
-  database: <%= ENV.fetch('TEST_POSTGRES_DB', 'postgres') %>
-  host: <%= ENV.fetch('TEST_POSTGRES_HOST', '127.0.0.1') %>
-  port: <%= ENV.fetch('TEST_POSTGRES_PORT', 5432) %>
-  username: <%= ENV.fetch('TEST_POSTGRES_USER', 'postgres') %>
-  password: <%= ENV.fetch('TEST_POSTGRES_PASSWORD', 'postgres') %>
   pool: 30
+  cache: shared
+#  database: <%= ENV.fetch('TEST_POSTGRES_DB', 'postgres') %>
+#  host: <%= ENV.fetch('TEST_POSTGRES_HOST', '127.0.0.1') %>
+#  port: <%= ENV.fetch('TEST_POSTGRES_PORT', 5432) %>
+#  username: <%= ENV.fetch('TEST_POSTGRES_USER', 'postgres') %>
+#  password: <%= ENV.fetch('TEST_POSTGRES_PASSWORD', 'postgres') %>
+#  pool: 30
