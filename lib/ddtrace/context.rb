@@ -22,7 +22,6 @@ module Datadog
 
     # Initialize a new thread-safe \Context.
     def initialize(options = {})
-      @btm = Concurrent::ReadWriteLock.new
       # max_length is the amount of spans above which, for a given trace,
       # the context will simply drop and ignore spans, avoiding high memory usage.
       @max_length = options.fetch(:max_length, DEFAULT_MAX_LENGTH)
@@ -104,7 +103,6 @@ module Datadog
     #
     # This operation is thread-safe.
     def get
-      @btm.with_read_lock do
         trace = @trace
         sampled = @sampled
 
@@ -115,15 +113,12 @@ module Datadog
 
         reset
         [trace, sampled]
-      end
     end
 
     # Return a string representation of the context.
     def to_s
-      @btm.with_read_lock do
         # rubocop:disable Metrics/LineLength
         "Context(trace.length:#{@trace.length},sampled:#{@sampled},finished_spans:#{@finished_spans},current_span:#{@current_span})"
-      end
     end
 
     private
@@ -164,10 +159,8 @@ module Datadog
 
     # Return the start time of the root span, or nil if there are no spans or this is undefined.
     def start_time
-      @btm.with_read_lock do
         return nil if @trace.empty?
         @trace[0].start_time
-      end
     end
 
     # Return the length of the current trace held by this context.
@@ -177,16 +170,13 @@ module Datadog
 
     # Iterate on each span within the trace. This is thread safe.
     def each_span
-      @btm.with_read_lock do
         @trace.each do |span|
           yield span
         end
-      end
     end
 
     # Delete any span matching the condition. This is thread safe.
     def delete_span_if
-      @btm.with_write_lock do
         @trace.delete_if do |span|
           finished = span.finished?
           delete_span = yield span
@@ -201,7 +191,6 @@ module Datadog
           end
           delete_span
         end
-      end
     end
   end
 
