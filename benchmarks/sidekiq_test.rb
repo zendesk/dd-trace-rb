@@ -7,6 +7,17 @@ require 'English'
 module TestConfiguration
   module_function
 
+  def migrate
+    ActiveRecord::Schema.define do
+      drop_table(:samples) if table_exists?(:samples)
+
+      create_table :samples do |t|
+        t.string :name
+        t.timestamps
+      end
+    end
+  end
+
   def sidekiq
     Sidekiq.options.tap do |options|
       options[:tag] = 'test'
@@ -17,11 +28,14 @@ module TestConfiguration
   end
 
   def redis
-    { pool_size: 30, timeout: 3 }
+    {pool_size: 30, timeout: 3}
   end
 
+  def iteration_count=(c)
+    @iteration_count=c
+  end
   def iteration_count
-    1000
+    @iteration_count ||= 500
   end
 end
 
@@ -31,13 +45,14 @@ Bundler.require(*Rails.groups)
 
 # Example Rails App
 module SampleApp
-  class Application < Rails::Application; end
+  class Application < Rails::Application;
+  end
 end
 
 # Overrides rails configueration locations
 module OverrideConfiguration
   def paths
-    super.tap { |path| path.add 'config/database', with: 'benchmarks/postgres_database.yml' }
+    super.tap {|path| path.add 'config/database', with: 'benchmarks/postgres_database.yml'}
   end
 end
 
@@ -52,16 +67,18 @@ end
 ActiveRecord::Base.configurations = Rails.application.config.database_configuration
 Rails.application.initialize!
 
-ActiveRecord::Schema.define do
-  drop_table(:samples) if connection.table_exists?(:samples)
-
-  create_table :samples do |t|
-    t.string :name
-    t.timestamps
+ActiveRecord::Base.class_eval do
+  def self.establish_connection(*)
+    super.tap do
+      MemoryTestFix::SchemaLoader.init_schema
+    end
   end
 end
 
-class Sample < ActiveRecord::Base; end
+TestConfiguration::migrate
+
+class Sample < ActiveRecord::Base;
+end
 
 require 'sidekiq/launcher'
 require 'sidekiq/cli'
@@ -70,14 +87,16 @@ require 'concurrent/atomic/atomic_fixnum'
 Sidekiq.configure_server do |config|
   redis_conn = proc do
     Redis.new(
-      host: ENV.fetch('TEST_REDIS_HOST', '127.0.0.1'),
-      port: ENV.fetch('TEST_REDIS_PORT', 6379)
+        host: ENV.fetch('TEST_REDIS_HOST', '127.0.0.1'),
+        port: ENV.fetch('TEST_REDIS_PORT', 6379)
     )
   end
   config.redis = ConnectionPool.new(size: TestConfiguration.redis[:pool_size],
                                     timeout: TestConfiguration.redis[:timeout],
                                     &redis_conn)
+  Sidekiq::Logging.logger = nil
 end
+
 
 # Simple Sidekiq worker performing the real benchmark
 class Worker
@@ -89,11 +108,10 @@ class Worker
   @conditional_variable = ConditionVariable.new
 
   include Sidekiq::Worker
+
   def perform(iter, max_iterations)
     self.class.iterations.increment
     self.class.conditional_variable.broadcast if self.class.iterations.value > max_iterations
-
-    Sample.create!(name: iter.to_s).save
 
     100.times do
       Sample.last.name
@@ -105,7 +123,7 @@ end
 
 if Datadog.respond_to?(:configure)
   Datadog.configure do |d|
-    d.use :rails, enabled: true, tags: { 'tag' => 'value' }
+    d.use :rails, enabled: true, tags: {'tag' => 'value'}
     d.use :http
     d.use :sidekiq, service_name: 'service'
     d.use :redis
@@ -129,6 +147,10 @@ def time
 end
 
 def launch(iterations, options)
+  1000.times do |i|
+    Sample.create!(name: "#{i}-#{iterations}").save
+  end
+
   iterations.times do |i|
     Worker.perform_async(i, iterations)
   end
@@ -152,5 +174,44 @@ def wait_and_measure(iterations)
   end
 end
 
+require 'ruby-prof'
+
+def calltree(result)
+  path = "#{ENV['B']}"
+  Dir.mkdir(path)
+  printer = RubyProf::CallTreePrinter.new(result)
+  printer.print(path: path)
+end
+
+def threads(result)
+  printer = RubyProf::GraphHtmlPrinter.new(result)
+  File.open("#{ENV['B']}-#{$PROCESS_ID}-threads.html", 'w+') do |file|
+    printer.print(file)
+    puts file.path
+  end
+end
+
+def bm
+  RubyProf.start
+  yield
+
+  result = RubyProf.stop
+
+  calltree(result)
+  threads(result)
+end
+
+def run(&block)
+  if ENV['B']
+    bm(&block)
+  else
+    yield
+  end
+end
+
+if ENV['B']
+  TestConfiguration.iteration_count /= 5
+end
+
 launch(TestConfiguration.iteration_count, TestConfiguration.sidekiq)
-wait_and_measure(TestConfiguration.iteration_count)
+run {wait_and_measure(TestConfiguration.iteration_count)}
