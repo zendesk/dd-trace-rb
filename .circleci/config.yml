@@ -101,7 +101,7 @@ filters_only_release_tags: &filters_only_release_tags
 
 aliases:
   - &bundler_cache
-      key: 'betav4-bundle-{{ .Environment.CIRCLE_JOB }}-{{ checksum "Gemfile" }}-{{ checksum "ddtrace.gemspec" }}-{{ checksum "Appraisals" }}'
+      key: 'betav5-bundle-{{ .Environment.CIRCLE_JOB }}-{{ checksum "Gemfile" }}-{{ checksum "ddtrace.gemspec" }}-{{ checksum "Appraisals" }}'
       paths:
         - vendor/bundle
         - gemfiles/
@@ -126,10 +126,10 @@ aliases:
 
 version: 2.0
 jobs:
-  benchmark-2.4:
+  benchmark-2.3:
     <<: *job_defaults
     docker:
-      - <<: *container-2_4
+      - <<: *container-2_3
         environment:
           - TEST_DATADOG_INTEGRATION: 1
       - *container_postgres
@@ -154,10 +154,10 @@ jobs:
           name: Run Benchmark without ddtracer
           command: rm -f lib/ddtrace.rb && bundle exec appraisal rails5-postgres-sidekiq ruby benchmarks/sidekiq_test.rb # 2>&1 1> /dev/null | tee benchmark_results.csv
 
-  test-2.4:
+  test-2.3:
     <<: *job_defaults
     docker:
-      - <<: *container-2_4
+      - <<: *container-2_3
         environment:
           - TEST_DATADOG_INTEGRATION: 1
       - *container_postgres
@@ -224,9 +224,9 @@ workflows:
 #          requires:
 #            - build-2.2
 
-      - benchmark-2.4:
+      - benchmark-2.3:
           <<: *filters_all_branches_and_tags
-      - test-2.4:
+      - test-2.3:
           <<: *filters_all_branches_and_tags
 #      - deploy-release:
 #          <<: *filters_only_release_tags
