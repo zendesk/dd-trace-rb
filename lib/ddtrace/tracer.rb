@@ -213,8 +213,8 @@ module Datadog
         # Plus, this documents the code (Ruby 2 named args would be better but we're Ruby 1.9 compatible)
         ALLOWED_SPAN_OPTIONS.include?(k)
       end
-
-      ctx, parent = guess_context_and_parent(options[:child_of])
+      ctx, parent = [nil,nil]
+      # ctx, parent = guess_context_and_parent(options[:child_of])
       opts[:context] = ctx unless ctx.nil?
 
       span = Span.new(self, name, opts)

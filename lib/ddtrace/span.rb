@@ -124,7 +124,7 @@ module Datadog
       @service ||= @tracer.default_service unless @tracer.nil?
 
       begin
-        @context.close_span(self)
+        # @context.close_span(self)
         @tracer.record(self)
       rescue StandardError => e
         Datadog::Tracer.log.debug("error recording finished trace: #{e}")
