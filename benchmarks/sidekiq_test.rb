@@ -1,5 +1,6 @@
 ENV['RAILS_ENV'] = 'production'
 require 'English'
+GC.disable
 
 # Benchmark Configuration container
 module TestConfiguration
