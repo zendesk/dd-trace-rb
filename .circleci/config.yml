@@ -161,7 +161,7 @@ jobs:
       - *container_postgres
       - *container_redis
       - *container_agent
-    parallelism: 1
+    parallelism: 3
     steps:
       - checkout
       - attach_workspace:
@@ -184,7 +184,7 @@ jobs:
       - *container_postgres
       - *container_redis
       - *container_agent
-    parallelism: 1
+    parallelism: 3
     steps:
       - checkout
       - attach_workspace:
