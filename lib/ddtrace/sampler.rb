@@ -14,6 +14,67 @@ module Datadog
     end
   end
 
+  # Applies sampling rules first before falling back to default behaviors.
+  # The first rule matching the span will be applied.
+  class RuleSampler
+    attr_reader \
+      :rules,
+      :priority_sampler
+
+    def initialize(options = {})
+      self.rules = options.fetch(:rules, [])
+      self.priority_sampler = options.fetch(:priority_sampler, PrioritySampler.new)
+    end
+
+    def matching_rule(span)
+      rules.find { |rule| rule.matches?(span) }
+    end
+
+    def sample?(span)
+      # Check to see if there is a user defined rule that matches this span
+      rule = matching_rule(span)
+
+      # No rule matches this span, fallback to existing behavior
+      return priority_sampler.sample?(span) if rule.nil?
+
+      # Check if the matching rule will sample the span
+      return false unless rule.sample?(span)
+
+      # TODO: The span was sampled, verify we do not exceed our rate limit
+      # return false rate_limiter.is_allowed?
+
+      # Span should be sampled by default
+      true
+    end
+
+    def sample!(span)
+      # Check to see if there is a user defined rule that matches this span
+      rule = matching_rule(span)
+
+      # No rule matches this span, fallback to existing behavior
+      return priority_sampler.sample!(span) if rule.nil?
+
+      # Check if the matching rule will sample the span
+      unless rule.sample?(span)
+        # TODO: Set priority sampling appropriately.
+        # span.sampling_priority = Datadog::Ext::Priority::AUTO_REJECT
+        return false
+      end
+
+      # TODO: The span was sampled, verify we do not exceed our rate limit
+      # unless rate_limiter.is_allowed?
+      #   # TODO: Set priority sampling appropriately.
+      #   # span.sampling_priority = Datadog::Ext::Priority::AUTO_REJECT
+      #   return false
+      # end
+
+      # Span should be sampled by default
+      # TODO: Set sample rate and priority sampling appropriately.
+      # span.sampling_priority = Datadog::Ext::Priority::AUTO_KEEP
+      true
+    end
+  end
+
   # \AllSampler samples all the traces.
   class AllSampler < Sampler
     def sample?(span)
