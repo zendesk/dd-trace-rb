@@ -44,7 +44,7 @@ step_init_bundle_checksum: &step_init_bundle_checksum
 step_bundle_install: &step_bundle_install
   run:
     name: Install gem dependencies
-    command: bundle install
+    command: bundle install --jobs=4
 step_rubocop: &step_rubocop
   run:
     name: Delint with Rubocop
@@ -52,7 +52,7 @@ step_rubocop: &step_rubocop
 step_appraisal_install: &step_appraisal_install
   run:
     name: Install Appraisal gems
-    command: bundle exec appraisal install
+    command: bundle exec appraisal install --jobs=4
 step_compute_bundle_checksum: &step_compute_bundle_checksum
   run:
     name: Compute bundle checksum
