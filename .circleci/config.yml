@@ -209,7 +209,7 @@ jobs:
     <<: *job_defaults
     docker:
       - <<: *container_base
-        image: marcotc/docker-library:ddtrace_rb_2_5_6
+        image: circleci/ruby:2.5
     steps:
       - checkout
       - run:
@@ -266,7 +266,7 @@ job_configuration: &job_configuration
   - &config-2_3
     <<: *filters_all_branches_and_tags
     ruby_version: '2.3'
-    image: palazzem/docker-library:ddtrace_rb_2_3_8
+    image: marcotc/docker-library-test:2.3
   - &config-2_4
     <<: *filters_all_branches_and_tags
     ruby_version: '2.4'
