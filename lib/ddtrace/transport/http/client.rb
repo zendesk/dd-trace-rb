@@ -24,15 +24,15 @@ module Datadog
           env = build_env(request)
 
           # Get responses from API
-          responses = yield(current_api, env)
+          response = yield(current_api, env)
 
           # Update statistics
-          responses.each { |r| update_stats_from_response!(r) }
+          update_stats_from_response!(response)
 
           # If API should be downgraded, downgrade and try again.
-          if responses.find { |r| downgrade?(r) }
+          if downgrade?(response)
             downgrade!
-            responses = send_request(request, &block)
+            raise UnsupportedApiVersionError # We have to restart the request, in case the encoder has changed
           end
 
           responses

@@ -24,7 +24,18 @@ module Datadog
         # Extensions for HTTP client
         module Client
           def send_traces(traces)
-            request = Transport::Traces::Request.new(traces)
+            encoder = current_api.spec.traces.encoder
+            encoder.encode_traces(traces) do |encoded_traces, trace_count|
+              # Send traces and get response
+              send_data(encoded_traces, trace_count)
+            end
+          rescue UnsupportedVersionError => _
+            # Downgrade preformed, restart method as the encoder might have changed
+            return send_traces(traces)
+          end
+
+          def send_data(data, trace_count)
+            request = Transport::Traces::Request.new(data, trace_count)
 
             send_request(request) do |api, env|
               api.send_traces(env)
