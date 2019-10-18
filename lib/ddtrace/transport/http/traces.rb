@@ -12,7 +12,7 @@ module Datadog
         # Response from HTTP transport for traces
         class Response
           include HTTP::Response
-          include Transport::Traces::Response
+          include Datadog::Transport::Traces::Response
 
           def initialize(http_response, options = {})
             super(http_response)
@@ -23,20 +23,7 @@ module Datadog
 
         # Extensions for HTTP client
         module Client
-          def send_traces(traces)
-            encoder = current_api.spec.traces.encoder
-            encoder.encode_traces(traces) do |encoded_traces, trace_count|
-              # Send traces and get response
-              send_data(encoded_traces, trace_count)
-            end
-          rescue UnsupportedVersionError => _
-            # Downgrade preformed, restart method as the encoder might have changed
-            return send_traces(traces)
-          end
-
-          def send_data(data, trace_count)
-            request = Transport::Traces::Request.new(data, trace_count)
-
+          def send_payload(request)
             send_request(request) do |api, env|
               api.send_traces(env)
             end
@@ -115,30 +102,18 @@ module Datadog
             end
 
             def call(env, &block)
-              encoder.encode_traces(env.request.parcel.data) do |encoded_data, count|
-                # Ensure no data is leaked between each request.
-                # We have perform this copy before we start modifying headers and body.
-                new_env = env.dup
-
-                process_batch(new_env, encoded_data, count) { |e| super(e, &block) }
-              end
-            end
-
-            private
-
-            def process_batch(env, encoded_data, count)
               # Add trace count header
-              env.headers[HEADER_TRACE_COUNT] = count.to_s
+              env.headers[HEADER_TRACE_COUNT] = env.request.parcel.trace_count.to_s
 
               # Encode body & type
               env.headers[HEADER_CONTENT_TYPE] = encoder.content_type
-              env.body = encoded_data
+              env.body = env.request.parcel.data
 
               # Query for response
-              http_response = yield env
+              http_response = super(env, &block)
 
               # Process the response
-              response_options = { trace_count: count }.tap do |options|
+              response_options = {}.tap do |options|
                 # Parse service rates, if configured to do so.
                 if service_rates? && !http_response.payload.to_s.empty?
                   body = JSON.parse(http_response.payload)

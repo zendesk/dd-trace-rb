@@ -22,13 +22,12 @@ RSpec.describe Datadog::Transport::HTTP::Traces::Response do
 end
 
 RSpec.describe Datadog::Transport::HTTP::Client do
-  subject(:client) { described_class.new(apis, :v1) }
-  let(:apis) { Datadog::Transport::HTTP::API::Map[v1: api] }
+  subject(:client) { described_class.new(api) }
   let(:api) { instance_double(Datadog::Transport::HTTP::API::Instance) }
 
-  describe '#send_traces' do
-    subject(:send_traces) { client.send_traces(traces) }
-    let(:traces) { instance_double(Array) }
+  describe '#send_payload' do
+    subject(:send_payload) { client.send_payload(request) }
+    let(:request) { instance_double(Datadog::Transport::Traces::Request) }
     let(:response) { instance_double(Datadog::Transport::HTTP::Traces::Response) }
 
     before do
@@ -36,12 +35,12 @@ RSpec.describe Datadog::Transport::HTTP::Client do
 
       expect(api).to receive(:send_traces) do |env|
         expect(env).to be_a_kind_of(Datadog::Transport::HTTP::Env)
-        expect(env.request).to be_a_kind_of(Datadog::Transport::Traces::Request)
-        [response]
+        expect(env.request).to be(request)
+        response
       end
     end
 
-    it { is_expected.to eq([response]) }
+    it { is_expected.to eq(response) }
   end
 end
 
@@ -133,7 +132,7 @@ RSpec.describe Datadog::Transport::HTTP::Traces::API::Endpoint do
   describe '#call' do
     subject(:call) { endpoint.call(env, &block) }
     let(:env) { Datadog::Transport::HTTP::Env.new(request) }
-    let(:request) { Datadog::Transport::Traces::Request.new(traces) }
+    let(:request) { Datadog::Transport::Traces::Request.new(traces, 1, 'text/plain') }
     let(:traces) { [double('trace_once'), double('trace_two')] }
 
     let(:handler) { spy('handler') }
