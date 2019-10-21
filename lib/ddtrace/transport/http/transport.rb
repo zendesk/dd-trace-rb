@@ -1,6 +1,11 @@
 module Datadog
   module Transport
     module HTTP
+      # Sends traces based on transport API configuration.
+      #
+      # This class initializes the HTTP client, breaks down large
+      # batches of traces into smaller chunks and handles
+      # API version downgrade handshake.
       class Transport
         attr_reader :client, :apis, :default_api, :current_api_id
 
@@ -11,7 +16,8 @@ module Datadog
           change_api!(default_api)
         end
 
-        def send_traces(traces, encoder = current_encoder)
+        def send_traces(traces)
+          encoder = current_api.encoder
           encoder.encode_traces(traces) do |encoded_traces, trace_count|
             request = Datadog::Transport::Traces::Request.new(
               encoded_traces,
@@ -37,11 +43,6 @@ module Datadog
         end
 
         private
-
-        def current_encoder
-          # TODO: this is the sour spot, grabbing the encoder from a deeply nested call
-          current_api.spec.traces.encoder
-        end
 
         def downgrade?(response)
           return false unless apis.fallbacks.key?(@current_api_id)

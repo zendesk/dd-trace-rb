@@ -33,9 +33,10 @@ RSpec.describe Datadog::Transport::Traces::Request do
   describe '#initialize' do
     it do
       is_expected.to have_attributes(
-                       parcel: kind_of(Datadog::Transport::Traces::Parcel),
-                       trace_count: trace_count,
-                       content_type: content_type)
+        parcel: kind_of(Datadog::Transport::Traces::Parcel),
+        trace_count: trace_count,
+        content_type: content_type
+      )
     end
   end
 end

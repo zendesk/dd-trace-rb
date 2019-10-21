@@ -14,16 +14,10 @@ RSpec.describe Datadog::Transport::HTTP::Transport do
       ].with_fallbacks(v2: :v1)
     end
 
-    let(:api_v1) { instance_double(Datadog::Transport::HTTP::API::Instance, 'v1', spec: spec_v1) }
-    let(:api_v2) { instance_double(Datadog::Transport::HTTP::API::Instance, 'v2', spec: spec_v2) }
-    let(:spec_v1) { instance_double(Datadog::Transport::HTTP::Traces::API::Spec, traces: endpoint_v1) }
-    let(:spec_v2) { instance_double(Datadog::Transport::HTTP::Traces::API::Spec, traces: endpoint_v2) }
-    let(:endpoint_v1) { instance_double(Datadog::Transport::HTTP::Traces::API::Endpoint, encoder: encoder_v1) }
-    let(:endpoint_v2) { instance_double(Datadog::Transport::HTTP::Traces::API::Endpoint, encoder: encoder_v2) }
-    let(:encoder_v1) { instance_double(Datadog::Encoding::Encoder, content_type: content_type_v1) }
-    let(:encoder_v2) { instance_double(Datadog::Encoding::Encoder, content_type: content_type_v2) }
-    let(:content_type_v1) { 'text/plain' }
-    let(:content_type_v2) { 'text/csv' }
+    let(:api_v1) { instance_double(Datadog::Transport::HTTP::API::Instance, 'v1', encoder: encoder_v1) }
+    let(:api_v2) { instance_double(Datadog::Transport::HTTP::API::Instance, 'v2', encoder: encoder_v2) }
+    let(:encoder_v1) { instance_double(Datadog::Encoding::Encoder, content_type: 'text/plain') }
+    let(:encoder_v2) { instance_double(Datadog::Encoding::Encoder, content_type: 'text/csv') }
   end
 
   describe '#initialize' do
