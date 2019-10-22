@@ -111,6 +111,7 @@ orbs:
         docker:
           - <<: *container_base
             image: <<parameters.image>>
+            command: sudo /bin/sh
         steps:
           - restore_cache:
               keys:
