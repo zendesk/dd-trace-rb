@@ -2,13 +2,13 @@ version: 2.1
 
 # Common variables, containers, jobs and steps.
 job_defaults: &job_defaults
-  working_directory: /app
+  working_directory: ~/app
   shell: /bin/bash --login
 
 test_containers: &test_containers
   - &container_base
     environment:
-      - BUNDLE_GEMFILE=/app/Gemfile
+      - BUNDLE_GEMFILE=~/app/Gemfile
   - &container_postgres
     image: postgres:9.6
     environment:
@@ -98,7 +98,7 @@ orbs:
           - save_cache:
               key: '{{ .Environment.CIRCLE_CACHE_VERSION }}-repo-<<parameters.ruby_version>>-{{ .Environment.CIRCLE_SHA1 }}'
               paths:
-                - /app
+                - ~/app
       build:
         <<: *job_defaults
         parameters:
@@ -131,7 +131,7 @@ orbs:
           - save_cache:
               key: '{{ .Environment.CIRCLE_CACHE_VERSION }}-bundled-repo-<<parameters.ruby_version>>-{{ .Environment.CIRCLE_SHA1 }}'
               paths:
-                - /app
+                - ~/app
           - save_cache:
               key: '{{ .Environment.CIRCLE_CACHE_VERSION }}-bundle-<<parameters.ruby_version>>-{{ checksum ".circleci/bundle_checksum" }}'
               paths:
@@ -153,7 +153,7 @@ orbs:
           - <<: *container_base
             image: <<parameters.image>>
             environment:
-              - BUNDLE_GEMFILE: /app/Gemfile
+              - BUNDLE_GEMFILE: ~/app/Gemfile
               - TEST_DATADOG_INTEGRATION: 1
           - *container_postgres
           - *container_mysql
@@ -183,7 +183,7 @@ orbs:
           - <<: *container_base
             image: <<parameters.image>>
             environment:
-              - BUNDLE_GEMFILE: /app/Gemfile
+              - BUNDLE_GEMFILE: ~/app/Gemfile
               - TEST_DATADOG_INTEGRATION: 1
           - *container_postgres
           - *container_redis
@@ -266,7 +266,7 @@ job_configuration: &job_configuration
   - &config-2_3
     <<: *filters_all_branches_and_tags
     ruby_version: '2.3'
-    image: marcotc/docker-library-test:2.3
+    image: circleci/ruby:2.3
   - &config-2_4
     <<: *filters_all_branches_and_tags
     ruby_version: '2.4'
