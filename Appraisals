@@ -156,14 +156,14 @@ elsif Gem::Version.new('2.1.0') <= Gem::Version.new(RUBY_VERSION) \
 
     appraise 'rails4-postgres' do
       gem 'rails', '4.2.7.1'
-      gem 'pg', '~> 1', platform: :ruby
+      gem 'pg', '< 1.0', platform: :ruby
       gem 'activerecord-jdbcpostgresql-adapter', platform: :jruby
       gem 'sprockets', '< 4'
     end
 
     appraise 'rails4-postgres-redis' do
       gem 'rails', '4.2.7.1'
-      gem 'pg', '~> 1', platform: :ruby
+      gem 'pg', '< 1.0', platform: :ruby
       gem 'activerecord-jdbcpostgresql-adapter', platform: :jruby
       gem 'redis-rails'
       gem 'redis', '< 4.0'
@@ -267,14 +267,14 @@ elsif Gem::Version.new('2.2.0') <= Gem::Version.new(RUBY_VERSION) \
 
     appraise 'rails4-postgres' do
       gem 'rails', '4.2.7.1'
-      gem 'pg', '~> 1', platform: :ruby
+      gem 'pg', '< 1.0', platform: :ruby
       gem 'activerecord-jdbcpostgresql-adapter', platform: :jruby
       gem 'sprockets', '< 4'
     end
 
     appraise 'rails4-postgres-redis' do
       gem 'rails', '4.2.7.1'
-      gem 'pg', '~> 1', platform: :ruby
+      gem 'pg', '< 1.0', platform: :ruby
       gem 'activerecord-jdbcpostgresql-adapter', platform: :jruby
       gem 'redis-rails'
       gem 'redis', '< 4.0'
@@ -283,7 +283,7 @@ elsif Gem::Version.new('2.2.0') <= Gem::Version.new(RUBY_VERSION) \
 
     appraise 'rails4-postgres-sidekiq' do
       gem 'rails', '4.2.7.1'
-      gem 'pg', '~> 1', platform: :ruby
+      gem 'pg', '< 1.0', platform: :ruby
       gem 'activerecord-jdbcpostgresql-adapter', platform: :jruby
       gem 'sidekiq'
       gem 'activejob'
@@ -426,14 +426,14 @@ elsif Gem::Version.new('2.3.0') <= Gem::Version.new(RUBY_VERSION) \
 
     appraise 'rails4-postgres' do
       gem 'rails', '4.2.7.1'
-      gem 'pg', '~> 1', platform: :ruby
+      gem 'pg', '< 1.0', platform: :ruby
       gem 'activerecord-jdbcpostgresql-adapter', platform: :jruby
       gem 'sprockets', '< 4'
     end
 
     appraise 'rails4-postgres-redis' do
       gem 'rails', '4.2.7.1'
-      gem 'pg', '~> 1', platform: :ruby
+      gem 'pg', '< 1.0', platform: :ruby
       gem 'activerecord-jdbcpostgresql-adapter', platform: :jruby
       gem 'redis-rails'
       gem 'redis', '< 4.0'
@@ -442,7 +442,7 @@ elsif Gem::Version.new('2.3.0') <= Gem::Version.new(RUBY_VERSION) \
 
     appraise 'rails4-postgres-sidekiq' do
       gem 'rails', '4.2.7.1'
-      gem 'pg', '~> 1', platform: :ruby
+      gem 'pg', '< 1.0', platform: :ruby
       gem 'activerecord-jdbcpostgresql-adapter', platform: :jruby
       gem 'sidekiq'
       gem 'activejob'
