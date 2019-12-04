@@ -281,30 +281,36 @@ RSpec.describe 'Tracer integration tests' do
   end
 
   describe 'sampling priority integration' do
-    include_context 'agent-based test'
+    context 'default settings' do
+      # Expect default tracer & tracer instance to both have priority sampling.
+      it { expect(Datadog.tracer.writer.priority_sampler).to be_a_kind_of(Datadog::PrioritySampler) }
+      it { expect(Datadog.tracer.sampler).to be_a_kind_of(Datadog::PrioritySampler) }
+    end
 
-    # Expect default tracer & tracer instance to both have priority sampling.
-    it { expect(Datadog.tracer.sampler).to be_a_kind_of(Datadog::PrioritySampler) }
-    it { expect(tracer.sampler).to be_a_kind_of(Datadog::PrioritySampler) }
+    context 'flush' do
+      include_context 'agent-based test'
 
-    it do
-      3.times do |i|
-        parent_span = tracer.start_span('parent_span')
-        child_span = tracer.start_span('child_span', child_of: parent_span.context)
+      it { expect(tracer.sampler).to be_a_kind_of(Datadog::PrioritySampler) }
 
-        # I want to keep the trace to which `child_span` belongs
-        child_span.context.sampling_priority = i
+      it do
+        3.times do |i|
+          parent_span = tracer.start_span('parent_span')
+          child_span = tracer.start_span('child_span', child_of: parent_span.context)
 
-        child_span.finish
-        parent_span.finish
+          # I want to keep the trace to which `child_span` belongs
+          child_span.context.sampling_priority = i
 
-        try_wait_until(attempts: 20) { tracer.writer.stats[:traces_flushed] >= 1 }
-        stats = tracer.writer.stats
+          child_span.finish
+          parent_span.finish
 
-        expect(stats[:traces_flushed]).to eq(1)
-        expect(stats[:transport].client_error).to eq(0)
-        expect(stats[:transport].server_error).to eq(0)
-        expect(stats[:transport].internal_error).to eq(0)
+          try_wait_until(attempts: 20) { tracer.writer.stats[:traces_flushed] >= 1 }
+          stats = tracer.writer.stats
+
+          expect(stats[:traces_flushed]).to eq(1)
+          expect(stats[:transport].client_error).to eq(0)
+          expect(stats[:transport].server_error).to eq(0)
+          expect(stats[:transport].internal_error).to eq(0)
+        end
       end
     end
   end

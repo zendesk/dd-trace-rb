@@ -6,6 +6,7 @@ module Datadog
   # SyncWriter flushes both services and traces synchronously
   class SyncWriter
     attr_reader \
+      :priority_sampler,
       :runtime_metrics,
       :transport
 
@@ -47,6 +48,11 @@ module Datadog
     def flush_trace(trace)
       processed_traces = Pipeline.process!([trace])
       inject_hostname!(processed_traces.first) if Datadog.configuration.report_hostname
+
+      # Send traces but don't bother handling the response.
+      # Normally we would update the sampler's service rates from this response.
+      # However, the SyncWriter is normally used in short-lived forks.
+      # These service updates would not propagate to the parent process anyways.
       transport.send(:traces, processed_traces)
     end
 

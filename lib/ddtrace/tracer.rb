@@ -123,7 +123,7 @@ module Datadog
       @tags = {}
 
       # Enable priority sampling by default
-      activate_priority_sampling!(@sampler)
+      configure(options)
     end
 
     # Updates the current \Tracer instance, so that the tracer can be configured after the
@@ -391,7 +391,7 @@ module Datadog
       hostname = options.fetch(:hostname, nil)
       port = options.fetch(:port, nil)
       sampler = options.fetch(:sampler, nil)
-      priority_sampling = options.fetch(:priority_sampling, nil)
+      priority_sampling = options.fetch(:priority_sampling, true)
       writer = options.fetch(:writer, nil)
       transport_options = options.fetch(:transport_options, {})
 
@@ -436,8 +436,8 @@ module Datadog
       if rebuild_writer || writer
         # Make sure old writer is shut down before throwing away.
         # Don't want additional threads running...
-        @writer.stop unless writer.nil?
-        @writer = writer || Writer.new(writer_options)
+        @writer.stop unless writer.nil? || !writer.respond_to?(:stop)
+        @writer = writer || (@writer && @writer.class.new(writer_options)) || Writer.new(writer_options)
       end
     end
 
