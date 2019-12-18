@@ -2,7 +2,7 @@ version: 2.1
 
 # Common variables, containers, jobs and steps.
 job_defaults: &job_defaults
-  working_directory: ~
+  working_directory: '~'
   shell: /bin/bash --login
 
 test_containers:
