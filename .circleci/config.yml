@@ -143,11 +143,11 @@ orbs:
           - save_cache:
               key: '{{ .Environment.CIRCLE_CACHE_VERSION }}-bundle-<<parameters.ruby_version>>-{{ checksum ".circleci/bundle_checksum" }}'
               paths:
-                - /usr/local/bundle
+                - /usr/local/bundle/*
           - save_cache:
               key: bundle-{{ .Environment.CIRCLE_CACHE_VERSION }}-<<parameters.ruby_version>>-{{ checksum "lib/ddtrace/version.rb" }}-{{ .Branch }}-{{ checksum "Gemfile" }}-{{ checksum "Appraisals" }}-{{ checksum "ddtrace.gemspec" }}-{{ checksum ".circleci/bundle_checksum" }}'
               paths:
-                - /usr/local/bundle
+                - /usr/local/bundle/*
       test:
         <<: *job_defaults
         parameters:
