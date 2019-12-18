@@ -274,27 +274,27 @@ job_configuration:
   - &config-2_1
     <<: *filters_all_branches_and_tags
     ruby_version: '2.1'
-    image: palazzem/docker-library:ddtrace_rb_2_1_10
+    image: circleci/ruby:2.1
   - &config-2_2
     <<: *filters_all_branches_and_tags
     ruby_version: '2.2'
-    image: palazzem/docker-library:ddtrace_rb_2_2_10
+    image: circleci/ruby:2.2
   - &config-2_3
     <<: *filters_all_branches_and_tags
     ruby_version: '2.3'
-    image: palazzem/docker-library:ddtrace_rb_2_3_8
+    image: circleci/ruby:2.3
   - &config-2_4
     <<: *filters_all_branches_and_tags
     ruby_version: '2.4'
-    image: palazzem/docker-library:ddtrace_rb_2_4_6
+    image: circleci/ruby:2.4
   - &config-2_5
     <<: *filters_all_branches_and_tags
     ruby_version: '2.5'
-    image: marcotc/docker-library:ddtrace_rb_2_5_6
+    image: circleci/ruby:2.5
   - &config-2_6
     <<: *filters_all_branches_and_tags
     ruby_version: '2.6'
-    image: marcotc/docker-library:ddtrace_rb_2_6_4
+    image: circleci/ruby:2.6
 
 workflows:
   version: 2
