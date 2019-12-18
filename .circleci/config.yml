@@ -40,7 +40,7 @@ step_init_bundle_checksum: &step_init_bundle_checksum
   run:
     name: Initialize bundle cache key
     command: |
-      touch .circleci/bundle_checksum
+      touch /tmp/bundle_checksum
 step_bundle_install: &step_bundle_install
   run:
     name: Install gem dependencies
@@ -57,7 +57,7 @@ step_compute_bundle_checksum: &step_compute_bundle_checksum
   run:
     name: Compute bundle checksum
     command: |
-      cat Gemfile.lock gemfiles/*.gemfile.lock > .circleci/bundle_checksum
+      cat Gemfile.lock gemfiles/*.gemfile.lock > /tmp/bundle_checksum
 step_run_all_tests: &step_run_all_tests
   run:
     name: Run tests
@@ -128,7 +128,7 @@ orbs:
           - *step_init_bundle_checksum
           - restore_cache:
               keys:
-                - '{{ .Environment.CIRCLE_CACHE_VERSION }}-bundle-<<parameters.ruby_version>>-{{ checksum ".circleci/bundle_checksum" }}'
+                - '{{ .Environment.CIRCLE_CACHE_VERSION }}-bundle-<<parameters.ruby_version>>-{{ checksum "/tmp/bundle_checksum" }}'
           - *step_bundle_install
           - when:
               condition: <<parameters.rubocop>>
@@ -141,11 +141,11 @@ orbs:
               paths:
                 - '{{ .Environment.CIRCLE_WORKING_DIRECTORY }}'
           - save_cache:
-              key: '{{ .Environment.CIRCLE_CACHE_VERSION }}-bundle-<<parameters.ruby_version>>-{{ checksum ".circleci/bundle_checksum" }}'
+              key: '{{ .Environment.CIRCLE_CACHE_VERSION }}-bundle-<<parameters.ruby_version>>-{{ checksum "/tmp/bundle_checksum" }}'
               paths:
                 - /usr/local/bundle/*
           - save_cache:
-              key: bundle-{{ .Environment.CIRCLE_CACHE_VERSION }}-<<parameters.ruby_version>>-{{ checksum "lib/ddtrace/version.rb" }}-{{ .Branch }}-{{ checksum "Gemfile" }}-{{ checksum "Appraisals" }}-{{ checksum "ddtrace.gemspec" }}-{{ checksum ".circleci/bundle_checksum" }}'
+              key: bundle-{{ .Environment.CIRCLE_CACHE_VERSION }}-<<parameters.ruby_version>>-{{ checksum "lib/ddtrace/version.rb" }}-{{ .Branch }}-{{ checksum "Gemfile" }}-{{ checksum "Appraisals" }}-{{ checksum "ddtrace.gemspec" }}-{{ checksum "/tmp/bundle_checksum" }}'
               paths:
                 - /usr/local/bundle/*
       test:
@@ -176,7 +176,7 @@ orbs:
                 - '{{ .Environment.CIRCLE_CACHE_VERSION }}-bundled-repo-<<parameters.ruby_version>>-{{ .Environment.CIRCLE_SHA1 }}'
           - restore_cache:
               keys:
-                - '{{ .Environment.CIRCLE_CACHE_VERSION }}-bundle-<<parameters.ruby_version>>-{{ checksum ".circleci/bundle_checksum" }}'
+                - '{{ .Environment.CIRCLE_CACHE_VERSION }}-bundle-<<parameters.ruby_version>>-{{ checksum "/tmp/bundle_checksum" }}'
           - *step_run_all_tests
       benchmark:
         <<: *job_defaults
@@ -202,7 +202,7 @@ orbs:
                 - '{{ .Environment.CIRCLE_CACHE_VERSION }}-bundled-repo-<<parameters.ruby_version>>-{{ .Environment.CIRCLE_SHA1 }}'
           - restore_cache:
               keys:
-                - '{{ .Environment.CIRCLE_CACHE_VERSION }}-bundle-<<parameters.ruby_version>>-{{ checksum ".circleci/bundle_checksum" }}'
+                - '{{ .Environment.CIRCLE_CACHE_VERSION }}-bundle-<<parameters.ruby_version>>-{{ checksum "/tmp/bundle_checksum" }}'
           - run:
               name: Run Benchmark
               command: bundle exec appraisal rails5-postgres-sidekiq ruby benchmarks/sidekiq_test.rb 2>&1 1> /dev/null | tee benchmark_results.csv
