@@ -2,13 +2,13 @@ version: 2.1
 
 # Common variables, containers, jobs and steps.
 job_defaults: &job_defaults
-  working_directory: /app
+  working_directory: ~
   shell: /bin/bash --login
 
 test_containers:
   - &container_base
     environment:
-      - BUNDLE_GEMFILE=/app/Gemfile
+      - BUNDLE_GEMFILE=~/Gemfile
   - &container_postgres
     image: postgres:9.6
     environment:
@@ -98,7 +98,7 @@ orbs:
           - save_cache:
               key: '{{ .Environment.CIRCLE_CACHE_VERSION }}-repo-<<parameters.ruby_version>>-{{ .Environment.CIRCLE_SHA1 }}'
               paths:
-                - /app
+                - '~'
       build:
         <<: *job_defaults
         parameters:
@@ -139,7 +139,7 @@ orbs:
           - save_cache:
               key: '{{ .Environment.CIRCLE_CACHE_VERSION }}-bundled-repo-<<parameters.ruby_version>>-{{ .Environment.CIRCLE_SHA1 }}'
               paths:
-                - /app
+                - '~'
           - save_cache:
               key: '{{ .Environment.CIRCLE_CACHE_VERSION }}-bundle-<<parameters.ruby_version>>-{{ checksum ".circleci/bundle_checksum" }}'
               paths:
@@ -161,7 +161,7 @@ orbs:
           - <<: *container_base
             image: <<parameters.image>>
             environment:
-              - BUNDLE_GEMFILE: /app/Gemfile
+              - BUNDLE_GEMFILE: ~/Gemfile
               - TEST_DATADOG_INTEGRATION: 1
           - *container_postgres
           - *container_mysql
@@ -191,7 +191,7 @@ orbs:
           - <<: *container_base
             image: <<parameters.image>>
             environment:
-              - BUNDLE_GEMFILE: /app/Gemfile
+              - BUNDLE_GEMFILE: ~/Gemfile
               - TEST_DATADOG_INTEGRATION: 1
           - *container_postgres
           - *container_redis
