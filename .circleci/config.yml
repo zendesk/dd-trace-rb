@@ -9,6 +9,7 @@ test_containers:
   - &container_base
     environment:
       - BUNDLE_GEMFILE=~/project/Gemfile
+      - BUNDLE_PATH=~/bundle
   - &container_postgres
     image: postgres:9.6
     environment:
@@ -44,7 +45,7 @@ step_init_bundle_checksum: &step_init_bundle_checksum
 step_bundle_install: &step_bundle_install
   run:
     name: Install gem dependencies
-    command: bundle install --path ~/bundle
+    command: bundle install
 step_rubocop: &step_rubocop
   run:
     name: Delint with Rubocop
@@ -128,7 +129,7 @@ orbs:
           - *step_init_bundle_checksum
           - restore_cache:
               keys:
-                - 'REVERT-ME-{{ .Environment.CIRCLE_CACHE_VERSION }}-bundle-<<parameters.ruby_version>>-{{ checksum ".circleci/bundle_checksum" }}'
+                - 'REVERT-ME2-{{ .Environment.CIRCLE_CACHE_VERSION }}-bundle-<<parameters.ruby_version>>-{{ checksum ".circleci/bundle_checksum" }}'
           - *step_bundle_install
           - when:
               condition: <<parameters.rubocop>>
@@ -142,7 +143,7 @@ orbs:
                 - '~/project'
           - save_cache:
 #              key: '{{ .Environment.CIRCLE_CACHE_VERSION }}-bundle-<<parameters.ruby_version>>-{{ checksum ".circleci/bundle_checksum" }}'
-              key: 'REVERT-ME-{{ .Environment.CIRCLE_CACHE_VERSION }}-bundle-<<parameters.ruby_version>>-{{ checksum ".circleci/bundle_checksum" }}'
+              key: 'REVERT-ME2-{{ .Environment.CIRCLE_CACHE_VERSION }}-bundle-<<parameters.ruby_version>>-{{ checksum ".circleci/bundle_checksum" }}'
               paths:
                 - '~/bundle'
           - save_cache:
@@ -177,7 +178,7 @@ orbs:
                 - '{{ .Environment.CIRCLE_CACHE_VERSION }}-bundled-repo-<<parameters.ruby_version>>-{{ .Environment.CIRCLE_SHA1 }}'
           - restore_cache:
               keys:
-                - 'REVERT-ME-{{ .Environment.CIRCLE_CACHE_VERSION }}-bundle-<<parameters.ruby_version>>-{{ checksum ".circleci/bundle_checksum" }}'
+                - 'REVERT-ME2-{{ .Environment.CIRCLE_CACHE_VERSION }}-bundle-<<parameters.ruby_version>>-{{ checksum ".circleci/bundle_checksum" }}'
           - *step_run_all_tests
       benchmark:
         <<: *job_defaults
@@ -203,7 +204,7 @@ orbs:
                 - '{{ .Environment.CIRCLE_CACHE_VERSION }}-bundled-repo-<<parameters.ruby_version>>-{{ .Environment.CIRCLE_SHA1 }}'
           - restore_cache:
               keys:
-                - 'REVERT-ME-{{ .Environment.CIRCLE_CACHE_VERSION }}-bundle-<<parameters.ruby_version>>-{{ checksum ".circleci/bundle_checksum" }}'
+                - 'REVERT-ME2-{{ .Environment.CIRCLE_CACHE_VERSION }}-bundle-<<parameters.ruby_version>>-{{ checksum ".circleci/bundle_checksum" }}'
           - run:
               name: Run Benchmark
               command: bundle exec appraisal rails5-postgres-sidekiq ruby benchmarks/sidekiq_test.rb 2>&1 1> /dev/null | tee benchmark_results.csv
