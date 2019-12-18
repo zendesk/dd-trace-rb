@@ -98,7 +98,7 @@ orbs:
           - save_cache:
               key: '{{ .Environment.CIRCLE_CACHE_VERSION }}-repo-<<parameters.ruby_version>>-{{ .Environment.CIRCLE_SHA1 }}'
               paths:
-                - '{{ .Environment.CIRCLE_WORKING_DIRECTORY }}'
+                - '$CIRCLE_WORKING_DIRECTORY'
       build:
         <<: *job_defaults
         parameters:
@@ -139,7 +139,7 @@ orbs:
           - save_cache:
               key: '{{ .Environment.CIRCLE_CACHE_VERSION }}-bundled-repo-<<parameters.ruby_version>>-{{ .Environment.CIRCLE_SHA1 }}'
               paths:
-                - '{{ .Environment.CIRCLE_WORKING_DIRECTORY }}'
+                - '$CIRCLE_WORKING_DIRECTORY'
           - save_cache:
               key: '{{ .Environment.CIRCLE_CACHE_VERSION }}-bundle-<<parameters.ruby_version>>-{{ checksum "/tmp/bundle_checksum" }}'
               paths:
@@ -161,7 +161,7 @@ orbs:
           - <<: *container_base
             image: <<parameters.image>>
             environment:
-              - BUNDLE_GEMFILE: '{{ .Environment.CIRCLE_WORKING_DIRECTORY }}/Gemfile'
+              - BUNDLE_GEMFILE: '$CIRCLE_WORKING_DIRECTORY/Gemfile'
               - TEST_DATADOG_INTEGRATION: 1
           - *container_postgres
           - *container_mysql
@@ -191,7 +191,7 @@ orbs:
           - <<: *container_base
             image: <<parameters.image>>
             environment:
-              - BUNDLE_GEMFILE: '{{ .Environment.CIRCLE_WORKING_DIRECTORY }}/Gemfile'
+              - BUNDLE_GEMFILE: '$CIRCLE_WORKING_DIRECTORY/Gemfile'
               - TEST_DATADOG_INTEGRATION: 1
           - *container_postgres
           - *container_redis
