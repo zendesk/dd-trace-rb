@@ -44,7 +44,7 @@ step_init_bundle_checksum: &step_init_bundle_checksum
 step_bundle_install: &step_bundle_install
   run:
     name: Install gem dependencies
-    command: bundle install
+    command: bundle install --path ~/bundle
 step_rubocop: &step_rubocop
   run:
     name: Delint with Rubocop
@@ -143,11 +143,11 @@ orbs:
           - save_cache:
               key: '{{ .Environment.CIRCLE_CACHE_VERSION }}-bundle-<<parameters.ruby_version>>-{{ checksum ".circleci/bundle_checksum" }}'
               paths:
-                - /usr/local/bundle/*
+                - '~/bundle'
           - save_cache:
               key: bundle-{{ .Environment.CIRCLE_CACHE_VERSION }}-<<parameters.ruby_version>>-{{ checksum "lib/ddtrace/version.rb" }}-{{ .Branch }}-{{ checksum "Gemfile" }}-{{ checksum "Appraisals" }}-{{ checksum "ddtrace.gemspec" }}-{{ checksum ".circleci/bundle_checksum" }}'
               paths:
-                - /usr/local/bundle/*
+                - '~/bundle'
       test:
         <<: *job_defaults
         parameters:
