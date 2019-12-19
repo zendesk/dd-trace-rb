@@ -164,6 +164,7 @@ orbs:
             image: <<parameters.image>>
             environment:
               - BUNDLE_GEMFILE: '~/project/Gemfile'
+              - BUNDLE_PATH: '~/bundle'
               - TEST_DATADOG_INTEGRATION: 1
           - *container_postgres
           - *container_mysql
