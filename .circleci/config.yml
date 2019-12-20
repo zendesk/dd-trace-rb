@@ -294,7 +294,7 @@ job_configuration:
   - &config-2_6
     <<: *filters_all_branches_and_tags
     ruby_version: '2.6'
-    image: marcotc/docker-library:ddtrace_rb_2_6_4
+    image: marcotc/docker-library:ddtrace_rb_2_6_4_test
 
 workflows:
   version: 2
