@@ -13,7 +13,7 @@ RSpec.shared_context 'integration context' do
     )
 
     server.mount_proc '/' do |req, res|
-      sleep(1) if req.query['simulate_timeout']
+      sleep(timeout * 1.1) if req.query['simulate_timeout']
       res.status = (req.query['status'] || req.body['status']).to_i
       if req.query['return_headers']
         headers = {}
@@ -39,7 +39,7 @@ RSpec.shared_context 'integration context' do
   let(:port) { @port }
   let(:method) { 'GET' }
   let(:simulate_timeout) { false }
-  let(:timeout) { 0.5 }
+  let(:timeout) { 0.03 }
   let(:return_headers) { false }
   let(:query) do
     query = { status: status }
