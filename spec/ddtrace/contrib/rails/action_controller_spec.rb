@@ -22,12 +22,14 @@ RSpec.describe 'Rails ActionController' do
   let(:controller) do
     stub_const('TestController', Class.new(base_class) do
       def index
-        # Do nothing
+        TestControllerBlock.call
       end
     end)
   end
   let(:name) { :index }
   let(:base_class) { ActionController::Base }
+  let(:controller_block) { -> {} }
+  let!(:test_controller_block) { stub_const('TestControllerBlock', controller_block) }
 
   describe '#action' do
     subject(:result) { action.call(env) }
@@ -57,11 +59,11 @@ RSpec.describe 'Rails ActionController' do
 
             before do
               expect_any_instance_of(controller).to receive(:response)
-                .at_least(:once)
-                .and_wrap_original do |m, *args|
-                  m.receiver.response = [200, headers, body]
-                  m.call(*args)
-                end
+                                                      .at_least(:once)
+                                                      .and_wrap_original do |m, *args|
+                m.receiver.response = [200, headers, body]
+                m.call(*args)
+              end
             end
 
             it do
@@ -83,11 +85,11 @@ RSpec.describe 'Rails ActionController' do
 
             before do
               expect_any_instance_of(controller).to receive(:response)
-                .at_least(:once)
-                .and_wrap_original do |m, *args|
-                  m.receiver.response = response_object
-                  m.call(*args)
-                end
+                                                      .at_least(:once)
+                                                      .and_wrap_original do |m, *args|
+                m.receiver.response = response_object
+                m.call(*args)
+              end
             end
 
             it do
@@ -96,6 +98,63 @@ RSpec.describe 'Rails ActionController' do
               expect(result).to have(3).items
               expect(all_spans).to have(1).items
               expect(all_spans.first.name).to eq('rails.action_controller')
+            end
+          end
+
+          context 'raising an application error' do
+            let(:controller_block) { -> { raise ZeroDivisionError.new("error msg") } }
+
+            it 'traces as an error span' do
+              expect { result }.to raise_error(StandardError)
+
+              expect(span.name).to eq('rails.action_controller')
+              expect(span.span_type).to eq('web')
+              expect(span.resource).to eq('TestController#index')
+              expect(span.get_tag('rails.route.action')).to eq('index')
+              expect(span.get_tag('rails.route.controller')).to eq('TestController')
+
+              expect(span).to have_error
+              expect(span).to have_error_type('ZeroDivisionError')
+              expect(span).to have_error_message('error msg')
+            end
+          end
+
+          context 'with 404 status code' do
+            let(:name) { :not_the_correct_name }
+
+            it 'does not trace as an error span' do
+              expect { result }.to raise_error(AbstractController::ActionNotFound)
+
+              expect(span.name).to eq('rails.action_controller')
+              expect(span.span_type).to eq('web')
+              expect(span.resource).to eq('TestController#index')
+              expect(span.get_tag('rails.route.action')).to eq('index')
+              expect(span.get_tag('rails.route.controller')).to eq('TestController')
+
+              expect(span).to have_error
+              expect(span).to have_error_type('ZeroDivisionError')
+              expect(span).to have_error_message('error msg')
+            end
+
+            it do
+              assert_raises ActionController::RoutingError do
+                get :not_found
+              end
+
+              spans = @tracer.writer.spans()
+              expect(spans).to have(1).items
+
+              span = spans[0]
+              expect(span.name).to eq('rails.action_controller')
+              expect(span.span_type).to eq('web')
+              expect(span.resource).to eq('TracingController#not_found')
+              expect(span.get_tag('rails.route.action')).to eq('not_found')
+              expect(span.get_tag('rails.route.controller')).to eq('TracingController')
+              # Stop here for old Rails versions, which have no ActionDispatch::ExceptionWrapper
+              return if Rails.version < '3.2.22.5'
+              expect(span.status).to eq(0)
+              assert_nil(span.get_tag('error.type'))
+              assert_nil(span.get_tag('error.msg'))
             end
           end
         end
