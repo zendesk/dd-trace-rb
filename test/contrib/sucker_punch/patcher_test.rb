@@ -16,6 +16,11 @@ module Datadog
           ::SuckerPunch::RUNNING.make_true
 
           @tracer = enable_test_tracer!
+          @writer = FauxWriter.new
+
+          @tracer.trace_completed.subscribe(:test) do |trace|
+            @writer.write(trace)
+          end
         end
 
         def test_two_spans_per_job
@@ -84,7 +89,7 @@ module Datadog
         attr_reader :tracer
 
         def all_spans
-          tracer.writer.spans(:keep)
+          @writer.spans(:keep)
         end
 
         def enable_test_tracer!

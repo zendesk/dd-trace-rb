@@ -7,14 +7,13 @@ require 'ddtrace/contrib/aws/patcher'
 require 'ddtrace/ext/http'
 
 RSpec.describe 'AWS instrumentation' do
+  include_context 'completed traces'
+
   let(:tracer) { get_test_tracer }
   let(:configuration_options) { { tracer: tracer } }
 
   let(:client) { ::Aws::S3::Client.new(stub_responses: responses) }
   let(:responses) { true }
-
-  let(:span) { spans.first }
-  let(:spans) { tracer.writer.spans(:keep) }
 
   before(:each) do
     Datadog.configure do |c|

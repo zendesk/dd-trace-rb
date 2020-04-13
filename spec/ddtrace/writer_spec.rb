@@ -57,42 +57,6 @@ RSpec.describe Datadog::Writer do
           allow(transport).to receive(:stats).and_return(transport_stats)
         end
 
-        shared_examples_for 'priority sampling update' do
-          context 'when a priority sampler' do
-            let(:priority_sampler) { instance_double(Datadog::PrioritySampler) }
-
-            context 'is configured' do
-              let(:options) { super().merge(priority_sampler: priority_sampler) }
-
-              context 'but service rates are not available' do
-                before do
-                  allow(response).to receive(:service_rates).and_return(nil)
-                  expect(priority_sampler).to_not receive(:update)
-                end
-
-                it { expectations.call }
-              end
-
-              context 'and service rates are available' do
-                let(:service_rates) { instance_double(Hash) }
-
-                before do
-                  allow(response).to receive(:service_rates).and_return(service_rates)
-                  expect(priority_sampler).to receive(:update)
-                    .with(service_rates)
-                end
-
-                it { expectations.call }
-              end
-            end
-
-            context 'is not configured' do
-              let(:options) { super().merge(priority_sampler: nil) }
-              it { expectations.call }
-            end
-          end
-        end
-
         context 'which returns a response that is' do
           let(:response) { instance_double(Datadog::Transport::HTTP::Traces::Response) }
 
@@ -103,13 +67,9 @@ RSpec.describe Datadog::Writer do
               allow(response).to receive(:internal_error?).and_return(false)
             end
 
-            it_behaves_like 'priority sampling update' do
-              let(:expectations) do
-                proc do
-                  is_expected.to be true
-                  expect(writer.stats[:traces_flushed]).to eq(1)
-                end
-              end
+            it do
+              is_expected.to be true
+              expect(writer.stats[:traces_flushed]).to eq(1)
             end
           end
 
@@ -120,13 +80,9 @@ RSpec.describe Datadog::Writer do
               allow(response).to receive(:internal_error?).and_return(false)
             end
 
-            it_behaves_like 'priority sampling update' do
-              let(:expectations) do
-                proc do
-                  is_expected.to be false
-                  expect(writer.stats[:traces_flushed]).to eq(0)
-                end
-              end
+            it do
+              is_expected.to be false
+              expect(writer.stats[:traces_flushed]).to eq(0)
             end
           end
 
@@ -134,26 +90,9 @@ RSpec.describe Datadog::Writer do
             let(:response) { Datadog::Transport::InternalErrorResponse.new(double('error')) }
             let(:error) { double('error') }
 
-            context 'when a priority sampler' do
-              context 'is configured' do
-                let(:options) { super().merge(priority_sampler: priority_sampler) }
-                let(:priority_sampler) { instance_double(Datadog::PrioritySampler) }
-                before { expect(priority_sampler).to_not receive(:update) }
-
-                it do
-                  is_expected.to be true
-                  expect(writer.stats[:traces_flushed]).to eq(0)
-                end
-              end
-
-              context 'is not configured' do
-                let(:options) { super().merge(priority_sampler: nil) }
-
-                it do
-                  is_expected.to be true
-                  expect(writer.stats[:traces_flushed]).to eq(0)
-                end
-              end
+            it do
+              is_expected.to be true
+              expect(writer.stats[:traces_flushed]).to eq(0)
             end
           end
         end
@@ -206,6 +145,20 @@ RSpec.describe Datadog::Writer do
               send_spans
             end
           end
+        end
+      end
+
+      describe '#flush_completed' do
+        subject(:flush_completed) { writer.flush_completed }
+        it { is_expected.to be_a_kind_of(described_class::FlushCompleted) }
+      end
+
+      describe described_class::FlushCompleted do
+        subject(:event) { described_class.new }
+
+        describe '#name' do
+          subject(:name) { event.name }
+          it { is_expected.to be :flush_completed }
         end
       end
     end

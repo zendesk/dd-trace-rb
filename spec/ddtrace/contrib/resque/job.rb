@@ -21,8 +21,7 @@ RSpec.shared_context 'Resque job' do
     end
   end
 
-  before(:each) do
-    Resque.after_fork { Datadog::Pin.get_from(Resque).tracer.writer = FauxWriter.new }
+  before do
     Resque.before_first_fork.each(&:call)
   end
 end

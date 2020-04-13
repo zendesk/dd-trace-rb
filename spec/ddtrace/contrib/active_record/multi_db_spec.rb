@@ -6,6 +6,8 @@ require 'mysql2'
 require 'sqlite3'
 
 RSpec.describe 'ActiveRecord multi-database implementation' do
+  include_context 'completed traces'
+
   let(:tracer) { get_test_tracer }
   let(:configuration_options) { { tracer: tracer, service_name: default_db_service_name } }
   let(:default_db_service_name) { 'default-db' }
@@ -74,7 +76,7 @@ RSpec.describe 'ActiveRecord multi-database implementation' do
   subject(:spans) do
     gadget_class.count
     widget_class.count
-    tracer.writer.spans
+    trace_writer.spans
   end
 
   let(:gadget_span) { spans[0] }

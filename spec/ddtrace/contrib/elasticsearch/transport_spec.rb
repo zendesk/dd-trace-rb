@@ -6,12 +6,14 @@ require 'faraday'
 require 'ddtrace'
 
 RSpec.describe 'Elasticsearch::Transport::Client tracing' do
-  before(:each) do
+  include_context 'completed traces'
+
+  before do
     WebMock.enable!
     WebMock.disable_net_connect!
   end
 
-  after(:each) do
+  after do
     WebMock.allow_net_connect!
     WebMock.reset!
     WebMock.disable!
@@ -22,19 +24,16 @@ RSpec.describe 'Elasticsearch::Transport::Client tracing' do
   let(:server) { "http://#{host}:#{port}" }
 
   let(:client) { Elasticsearch::Client.new(url: server) }
-  let(:tracer) { get_test_tracer }
+  let(:tracer) { new_tracer }
   let(:configuration_options) { { tracer: tracer } }
 
-  let(:spans) { tracer.writer.spans }
-  let(:span) { spans.first }
-
-  before(:each) do
+  before do
     Datadog.configure do |c|
       c.use :elasticsearch, configuration_options
     end
   end
 
-  after(:each) { Datadog.registry[:elasticsearch].reset_configuration! }
+  after { Datadog.registry[:elasticsearch].reset_configuration! }
 
   context 'when configured with middleware' do
     let(:client) do
@@ -69,7 +68,7 @@ RSpec.describe 'Elasticsearch::Transport::Client tracing' do
         let(:method) { 'GET' }
         let(:path) { '_cluster/health' }
 
-        before(:each) do
+        before do
           stub_request(:get, "#{server}/#{path}").to_return(status: 200)
           expect(response.status).to eq(200)
         end
@@ -97,7 +96,7 @@ RSpec.describe 'Elasticsearch::Transport::Client tracing' do
         let(:path) { 'my/thing/1' }
         let(:params) { { refresh: true } }
 
-        before(:each) do
+        before do
           stub_request(:put, "#{server}/#{path}?refresh=true").with(body: body).to_return(status: 201)
           expect(response.status).to eq(201)
         end
@@ -134,7 +133,7 @@ RSpec.describe 'Elasticsearch::Transport::Client tracing' do
 
   describe 'client Datadog::Pin' do
     context 'when #service is overridden' do
-      before(:each) { Datadog::Pin.get_from(client).service = service_name }
+      before { Datadog::Pin.get_from(client).service = service_name }
       let(:service_name) { 'bar' }
 
       describe 'then a GET request' do
@@ -143,7 +142,7 @@ RSpec.describe 'Elasticsearch::Transport::Client tracing' do
         let(:method) { 'GET' }
         let(:path) { '_cluster/health' }
 
-        before(:each) do
+        before do
           stub_request(:get, "#{server}/#{path}").to_return(status: 200)
           expect(response.status).to eq(200)
         end

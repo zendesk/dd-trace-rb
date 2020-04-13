@@ -38,6 +38,7 @@ module Datadog
       :health_metrics,
       :logger,
       :runtime_metrics,
+      :trace_writer,
       :tracer
 
     def shutdown!

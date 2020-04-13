@@ -15,13 +15,7 @@ RSpec.describe 'Datadog::Workers::AsyncTransport integration tests' do
   let(:flush_interval) { 0.1 }
   let(:buffer_size) { 10 }
 
-  let(:tracer) do
-    Datadog::Tracer.new.tap do |t|
-      t.configure(enabled: true, hostname: hostname, port: port)
-      t.writer = writer
-    end
-  end
-
+  let(:tracer) { Datadog::Tracer.new }
   let(:writer) do
     Datadog::Writer.new.tap do |w|
       # write some stuff to trigger a #start
@@ -55,6 +49,12 @@ RSpec.describe 'Datadog::Workers::AsyncTransport integration tests' do
 
   let(:stats) { writer.stats }
   let(:dump) { transport.dump }
+
+  before do
+    tracer.trace_completed.subscribe(:test) do |trace|
+      writer.write(trace)
+    end
+  end
 
   describe 'when sending spans' do
     let(:dumped_traces) { dump[200][:traces] }

@@ -8,10 +8,10 @@ require 'ddtrace'
 require 'ddtrace/contrib/rake/patcher'
 
 RSpec.describe Datadog::Contrib::Rake::Instrumentation do
-  let(:tracer) { get_test_tracer }
+  let(:tracer) { new_tracer }
   let(:configuration_options) { { tracer: tracer, enabled: true } }
-  let(:spans) { tracer.writer.spans }
-  let(:span) { spans.first }
+
+  include_context 'completed traces'
 
   before(:each) do
     skip('Rake integration incompatible.') unless Datadog::Contrib::Rake::Integration.compatible?
@@ -65,7 +65,7 @@ RSpec.describe Datadog::Contrib::Rake::Instrumentation do
   describe '#invoke' do
     before(:each) do
       ::Rake.application.instance_variable_set(:@top_level_tasks, [task_name.to_s])
-      expect(tracer).to receive(:shutdown!).with(no_args).once.and_call_original
+      expect(::Datadog).to receive(:shutdown!).with(no_args).once.and_call_original
     end
 
     shared_examples_for 'a single task execution' do

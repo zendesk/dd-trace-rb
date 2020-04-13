@@ -5,10 +5,12 @@ require 'ddtrace'
 require_relative 'app'
 
 RSpec.describe 'ActiveRecord instrumentation' do
+  include_context 'completed traces'
+
   let(:tracer) { get_test_tracer }
   let(:configuration_options) { { tracer: tracer } }
 
-  before(:each) do
+  before do
     # Prevent extra spans during tests
     Article.count
 
@@ -28,10 +30,7 @@ RSpec.describe 'ActiveRecord instrumentation' do
   end
 
   context 'when query is made' do
-    before(:each) { Article.count }
-
-    let(:spans) { tracer.writer.spans }
-    let(:span) { spans.first }
+    before { Article.count }
 
     it_behaves_like 'analytics for integration' do
       let(:analytics_enabled_var) { Datadog::Contrib::ActiveRecord::Ext::ENV_ANALYTICS_ENABLED }

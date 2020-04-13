@@ -101,15 +101,18 @@ RSpec.describe Datadog::SyncWriter do
   end
 
   describe 'integration' do
-    context 'when initializing a tracer' do
-      subject(:tracer) { Datadog::Tracer.new(writer: sync_writer) }
-      it { expect(tracer.writer).to be sync_writer }
-    end
+    context 'when configuring with a SyncWriter' do
+      let(:settings) do
+        Datadog::Configuration::Settings.new.tap do |settings|
+          settings.trace_writer.instance = sync_writer
+        end
+      end
 
-    context 'when configuring a tracer' do
-      subject(:tracer) { Datadog::Tracer.new }
-      before { tracer.configure(writer: sync_writer) }
-      it { expect(tracer.writer).to be sync_writer }
+      let(:components) { Datadog::Configuration::Components.new(settings) }
+      let(:tracer) { components.tracer }
+      let(:trace_writer) { components.trace_writer }
+
+      it { expect(trace_writer).to be sync_writer }
 
       context 'then submitting a trace' do
         before do

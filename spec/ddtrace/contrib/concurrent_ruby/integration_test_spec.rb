@@ -4,6 +4,8 @@ require 'spec_helper'
 require 'ddtrace'
 
 RSpec.describe 'ConcurrentRuby integration tests' do
+  include_context 'completed traces'
+
   around do |example|
     unmodified_future = ::Concurrent::Future.dup
     example.run
@@ -12,7 +14,7 @@ RSpec.describe 'ConcurrentRuby integration tests' do
     remove_patch!(:concurrent_ruby)
   end
 
-  let(:tracer) { get_test_tracer }
+  let(:tracer) { new_tracer }
   let(:configuration_options) { { tracer: tracer } }
 
   subject(:deferred_execution) do
@@ -43,11 +45,11 @@ RSpec.describe 'ConcurrentRuby integration tests' do
     end
 
     it 'writes inner span to tracer' do
-      expect(tracer.writer.spans).to include(inner_span)
+      expect(trace_writer.spans).to include(inner_span)
     end
 
     it 'writes outer span to tracer' do
-      expect(tracer.writer.spans).to include(outer_span)
+      expect(trace_writer.spans).to include(outer_span)
     end
   end
 
@@ -65,7 +67,7 @@ RSpec.describe 'ConcurrentRuby integration tests' do
   end
 
   context 'when context propagation is disabled' do
-    it_should_behave_like 'deferred execution'
+    it_behaves_like 'deferred execution'
 
     it 'inner span should not have parent' do
       expect(inner_span.parent).to be_nil
@@ -73,7 +75,7 @@ RSpec.describe 'ConcurrentRuby integration tests' do
   end
 
   context 'when context propagation is enabled' do
-    it_should_behave_like 'deferred execution'
+    it_behaves_like 'deferred execution'
 
     before do
       Datadog.configure do |c|

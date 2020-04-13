@@ -6,22 +6,22 @@ require 'ddtrace'
 require 'ddtrace/contrib/excon/middleware'
 
 RSpec.describe Datadog::Contrib::Excon::Middleware do
-  let(:tracer) { get_test_tracer }
+  include_context 'trace components'
 
   let(:connection_options) { { mock: true } }
   let(:middleware_options) { {} }
-  let(:configuration_options) { { tracer: tracer } }
+  let(:configuration_options) { {} }
 
   let(:request_span) do
-    tracer.writer.spans(:keep).find { |span| span.name == Datadog::Contrib::Excon::Ext::SPAN_REQUEST }
+    trace_writer.spans(:keep).find { |span| span.name == Datadog::Contrib::Excon::Ext::SPAN_REQUEST }
   end
 
   let(:all_request_spans) do
-    tracer.writer.spans(:keep).find_all { |span| span.name == Datadog::Contrib::Excon::Ext::SPAN_REQUEST }
+    trace_writer.spans(:keep).find_all { |span| span.name == Datadog::Contrib::Excon::Ext::SPAN_REQUEST }
   end
 
-  before(:each) do
-    Datadog.configure do |c|
+  before do
+    Datadog.configure(global_settings) do |c|
       c.use :excon, configuration_options
     end
   end
@@ -149,14 +149,14 @@ RSpec.describe Datadog::Contrib::Excon::Middleware do
     subject!(:response) { connection.get(path: 'not_found') }
     let(:configuration_options) { super().merge(error_handler: custom_handler) }
     let(:custom_handler) { ->(env) { (400...600).cover?(env[:status]) } }
-    after(:each) { Datadog.configuration[:excon][:error_handler] = nil }
+    after { Datadog.configuration[:excon][:error_handler] = nil }
     it { expect(request_span).to have_error }
   end
 
   context 'when split by domain' do
     subject(:response) { connection.get(path: '/success') }
     let(:configuration_options) { super().merge(split_by_domain: true) }
-    after(:each) { Datadog.configuration[:excon][:split_by_domain] = false }
+    after { Datadog.configuration[:excon][:split_by_domain] = false }
 
     it do
       response
@@ -208,7 +208,7 @@ RSpec.describe Datadog::Contrib::Excon::Middleware do
 
   context 'when distributed tracing is disabled' do
     let(:configuration_options) { super().merge(distributed_tracing: false) }
-    after(:each) { Datadog.configuration[:excon][:distributed_tracing] = true }
+    after { Datadog.configuration[:excon][:distributed_tracing] = true }
 
     subject!(:response) do
       expect_any_instance_of(Datadog::Contrib::Excon::Middleware).to receive(:request_call)
@@ -261,12 +261,12 @@ RSpec.describe Datadog::Contrib::Excon::Middleware do
   context 'global service name' do
     let(:service_name) { 'excon-global' }
 
-    before(:each) do
+    before do
       @old_service_name = Datadog.configuration[:excon][:service_name]
       Datadog.configure { |c| c.use :excon, service_name: service_name }
     end
 
-    after(:each) { Datadog.configure { |c| c.use :excon, service_name: @old_service_name } }
+    after { Datadog.configure { |c| c.use :excon, service_name: @old_service_name } }
 
     it do
       Excon.stub({ method: :get, path: '/success' }, body: 'OK', status: 200)

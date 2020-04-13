@@ -11,7 +11,11 @@ class TracerTestBase < Minitest::Test
 
   def setup
     @tracer = get_test_tracer
-    @writer = @tracer.writer
+    @writer = FauxWriter.new
+
+    @tracer.trace_completed.subscribe(:test) do |trace|
+      @writer.write(trace)
+    end
 
     redis_url = "redis://#{REDIS_HOST}:#{REDIS_PORT}"
 

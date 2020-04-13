@@ -75,11 +75,17 @@ module Datadog
       end
 
       def default_hostname
-        ENV.fetch(Datadog::Ext::Transport::HTTP::ENV_DEFAULT_HOST, Datadog::Ext::Transport::HTTP::DEFAULT_HOST)
+        ENV.fetch(
+          Datadog::Ext::Transport::HTTP::ENV_DEFAULT_HOST,
+          Datadog::Ext::Transport::HTTP::DEFAULT_HOST
+        )
       end
 
       def default_port
-        ENV.fetch(Datadog::Ext::Transport::HTTP::ENV_DEFAULT_PORT, Datadog::Ext::Transport::HTTP::DEFAULT_PORT).to_i
+        ENV.fetch(
+          Datadog::Ext::Transport::HTTP::ENV_DEFAULT_PORT,
+          Datadog::Ext::Transport::HTTP::DEFAULT_PORT
+        ).to_i
       end
 
       # Add adapters to registry

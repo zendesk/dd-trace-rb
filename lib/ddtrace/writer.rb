@@ -20,7 +20,7 @@ module Datadog
       # writer and transport parameters
       @buff_size = options.fetch(:buffer_size, Workers::AsyncTransport::DEFAULT_BUFFER_MAX_SIZE)
       @flush_interval = options.fetch(:flush_interval, Workers::AsyncTransport::DEFAULT_FLUSH_INTERVAL)
-      transport_options = options.fetch(:transport_options, {})
+      transport_options = options.fetch(:transport_options, {}).dup
 
       # priority sampling
       if options[:priority_sampler]
@@ -58,11 +58,17 @@ module Datadog
     end
 
     # stops worker for spans.
-    def stop
+    def stop(force_stop = false, timeout = nil)
       return if worker.nil?
-      @worker.stop
+
+      result = if timeout
+                 @worker.stop(force_stop, timeout)
+               else
+                 @worker.stop(force_stop)
+               end
+
       @worker = nil
-      true
+      result
     end
 
     # flush spans to the trace-agent, handles spans only
@@ -77,12 +83,9 @@ module Datadog
 
       unless response.internal_error?
         @traces_flushed += traces.length unless response.server_error?
-
-        # Update priority sampler
-        unless priority_sampler.nil? || response.service_rates.nil?
-          priority_sampler.update(response.service_rates)
-        end
       end
+
+      flush_completed.publish(response)
 
       # Return if server error occurred.
       !response.server_error?
@@ -115,13 +118,6 @@ module Datadog
         end
       end
 
-      # TODO: Remove this, and have the tracer pump traces directly to runtime metrics
-      #       instead of working through the trace writer.
-      # Associate root span with runtime metrics
-      if Datadog.configuration.runtime_metrics.enabled && !trace.empty?
-        Datadog.runtime_metrics.associate_with_span(trace.first)
-      end
-
       @worker.enqueue_trace(trace)
     end
 
@@ -131,6 +127,21 @@ module Datadog
         traces_flushed: @traces_flushed,
         transport: @transport.stats
       }
+    end
+
+    def flush_completed
+      @flush_completed ||= FlushCompleted.new
+    end
+
+    # Flush completed event for worker
+    class FlushCompleted < Event
+      def initialize
+        super(:flush_completed)
+      end
+
+      def publish(response)
+        super(response)
+      end
     end
 
     private

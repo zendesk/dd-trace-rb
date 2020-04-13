@@ -9,6 +9,8 @@ require 'ddtrace/contrib/delayed_job/plugin'
 require_relative 'delayed_job_active_record'
 
 RSpec.describe Datadog::Contrib::DelayedJob::Plugin, :delayed_job_active_record do
+  include_context 'completed traces'
+
   let(:sample_job_object) do
     stub_const('SampleJob', Class.new do
       def perform; end
@@ -26,7 +28,7 @@ RSpec.describe Datadog::Contrib::DelayedJob::Plugin, :delayed_job_active_record 
     end)
   end
 
-  let(:tracer) { get_test_tracer }
+  let(:tracer) { new_tracer }
   let(:configuration_options) { { tracer: tracer } }
 
   before do
@@ -44,7 +46,7 @@ RSpec.describe Datadog::Contrib::DelayedJob::Plugin, :delayed_job_active_record 
   describe 'instrumenting worker execution' do
     let(:worker) { double(:worker, name: 'worker') }
     before do
-      allow(tracer).to receive(:shutdown!).and_call_original
+      allow(::Datadog).to receive(:shutdown!)
     end
 
     it 'execution callback yields control' do
@@ -53,10 +55,10 @@ RSpec.describe Datadog::Contrib::DelayedJob::Plugin, :delayed_job_active_record 
 
     it 'shutdown happens after yielding' do
       Delayed::Worker.lifecycle.run_callbacks(:execute, worker) do
-        expect(tracer).not_to have_received(:shutdown!)
+        expect(::Datadog).not_to have_received(:shutdown!)
       end
 
-      expect(tracer).to have_received(:shutdown!)
+      expect(::Datadog).to have_received(:shutdown!)
     end
   end
 
@@ -65,12 +67,12 @@ RSpec.describe Datadog::Contrib::DelayedJob::Plugin, :delayed_job_active_record 
     subject(:job_run) { Delayed::Job.enqueue(sample_job_object.new, job_params) }
 
     it 'creates a span' do
-      expect { job_run }.to change { tracer.writer.spans.first }.to be_instance_of(Datadog::Span)
+      expect { job_run }.to change { trace_writer.spans.first }.to be_instance_of(Datadog::Span)
     end
 
     context 'when the job looks like Active Job' do
       subject(:job_run) { Delayed::Job.enqueue(active_job_sample_job_object.new, job_params) }
-      subject(:span) { tracer.writer.spans.first }
+      subject(:span) { trace_writer.spans.first }
 
       before { job_run }
 
@@ -80,7 +82,7 @@ RSpec.describe Datadog::Contrib::DelayedJob::Plugin, :delayed_job_active_record 
     end
 
     describe 'created span' do
-      subject(:span) { tracer.writer.spans.first }
+      subject(:span) { trace_writer.spans.first }
 
       before { job_run }
 

@@ -303,4 +303,67 @@ RSpec.describe Datadog::Span do
                     Datadog::Ext::ManualTracing::TAG_DROP,
                     Datadog::Ext::Priority::USER_REJECT)
   end
+
+  describe '#set_error' do
+    subject(:set_error) { span.set_error(error) }
+
+    let(:error) { double('error') }
+    let(:datadog_error) do
+      instance_double(
+        Datadog::Error,
+        type: type,
+        message: message,
+        backtrace: backtrace
+      )
+    end
+
+    let(:type) { 'CustomError' }
+    let(:message) { 'Whoops!' }
+    let(:backtrace) { "line 1\nline 2" }
+
+    before do
+      allow(Datadog::Error).to receive(:build_from)
+        .with(error)
+        .and_return(datadog_error)
+    end
+
+    it 'setts the error status and tags' do
+      set_error
+
+      expect(span.status).to eq(Datadog::Ext::Errors::STATUS)
+      expect(span.get_tag(Datadog::Ext::Errors::MSG)).to be message
+      expect(span.get_tag(Datadog::Ext::Errors::TYPE)).to be type
+      expect(span.get_tag(Datadog::Ext::Errors::STACK)).to be backtrace
+    end
+
+    context 'when the type is empty' do
+      let(:type) { '' }
+
+      it 'doesn\'t set the type tag' do
+        expect { set_error }
+          .to_not change { span.get_tag(Datadog::Ext::Errors::TYPE) }
+          .from(nil)
+      end
+    end
+
+    context 'when the message is empty' do
+      let(:message) { '' }
+
+      it 'doesn\'t set the message tag' do
+        expect { set_error }
+          .to_not change { span.get_tag(Datadog::Ext::Errors::MSG) }
+          .from(nil)
+      end
+    end
+
+    context 'when the backtrace is empty' do
+      let(:backtrace) { '' }
+
+      it 'doesn\'t set the stack tag' do
+        expect { set_error }
+          .to_not change { span.get_tag(Datadog::Ext::Errors::STACK) }
+          .from(nil)
+      end
+    end
+  end
 end

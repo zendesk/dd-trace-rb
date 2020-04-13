@@ -24,6 +24,7 @@ RSpec.describe Datadog::Contrib::Ethon do
 
   context 'with concurrent Hydra requests' do
     include_context 'integration context'
+    include_context 'completed traces'
 
     let(:url_1) { "http://#{host}:#{@port}#{path}?status=200&simulate_timeout=true" }
     let(:url_2) { "http://#{host}:#{@port}#{path}" }
@@ -37,11 +38,11 @@ RSpec.describe Datadog::Contrib::Ethon do
     end
 
     it 'creates 3 spans' do
-      expect { request }.to change { tracer.writer.spans.count }.to 3
+      expect { request }.to change { trace_writer.spans.count }.to 3
     end
 
     describe 'created spans' do
-      subject(:spans) { tracer.writer.spans }
+      subject(:spans) { trace_writer.spans }
       let(:span_get) { spans.select { |span| span.get_tag(Datadog::Ext::HTTP::METHOD) == 'GET' }.first }
       let(:span_post) { spans.select { |span| span.get_tag(Datadog::Ext::HTTP::METHOD) == 'POST' }.first }
       let(:span_parent) { spans.select { |span| span.name == 'ethon.multi.request' }.first }

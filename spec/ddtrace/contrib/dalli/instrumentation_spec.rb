@@ -6,15 +6,17 @@ require 'ddtrace'
 require 'ddtrace/contrib/dalli/patcher'
 
 RSpec.describe 'Dalli instrumentation' do
+  include_context 'completed traces'
+
   let(:test_host) { ENV.fetch('TEST_MEMCACHED_HOST', '127.0.0.1') }
   let(:test_port) { ENV.fetch('TEST_MEMCACHED_PORT', '11211') }
 
   let(:client) { ::Dalli::Client.new("#{test_host}:#{test_port}") }
-  let(:tracer) { get_test_tracer }
+  let(:tracer) { new_tracer }
   let(:configuration_options) { { tracer: tracer } }
 
   def all_spans
-    tracer.writer.spans(:keep)
+    trace_writer.spans(:keep)
   end
 
   let(:span) { all_spans.first }

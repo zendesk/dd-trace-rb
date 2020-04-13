@@ -40,6 +40,11 @@ class BaseRackAPITest < MiniTest::Test
     super
     # store the configuration and use a DummyTracer
     @tracer = get_test_tracer
+    @trace_writer = FauxWriter.new
+
+    @tracer.trace_completed.subscribe(:test) do |trace|
+      @trace_writer.write(trace)
+    end
 
     Datadog.configure do |c|
       c.use :grape, tracer: @tracer

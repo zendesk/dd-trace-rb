@@ -6,10 +6,9 @@ require 'ddtrace'
 
 RSpec.describe 'Resque instrumentation' do
   include_context 'Resque job'
+  include_context 'completed traces'
 
-  let(:tracer) { get_test_tracer }
-  let(:spans) { tracer.writer.spans }
-  let(:span) { spans.first }
+  let(:tracer) { new_tracer }
 
   let(:url) { "redis://#{host}:#{port}" }
   let(:host) { ENV.fetch('TEST_REDIS_HOST', '127.0.0.1') }
@@ -17,7 +16,7 @@ RSpec.describe 'Resque instrumentation' do
 
   let(:configuration_options) { { tracer: tracer } }
 
-  before(:each) do
+  before do
     # Setup Resque to use Redis
     ::Resque.redis = url
     ::Resque::Failure.clear
@@ -37,7 +36,7 @@ RSpec.describe 'Resque instrumentation' do
 
   shared_examples 'job execution tracing' do
     context 'that succeeds' do
-      before(:each) { perform_job(job_class) }
+      before { perform_job(job_class) }
 
       it 'is traced' do
         expect(spans).to have(1).items
@@ -58,7 +57,7 @@ RSpec.describe 'Resque instrumentation' do
     end
 
     context 'that fails' do
-      before(:each) do
+      before do
         # Rig the job to fail
         expect(job_class).to receive(:perform) do
           raise error_class, error_message
@@ -109,14 +108,14 @@ RSpec.describe 'Resque instrumentation' do
     it_should_behave_like 'job execution tracing'
 
     context 'trace context' do
-      before(:each) do
+      before do
         expect(job_class).to receive(:perform) do
           expect(tracer.active_span).to be_a_kind_of(Datadog::Span)
           expect(tracer.active_span.parent_id).to eq(0)
         end
 
-        # On completion of the fork, `Datadog.tracer.shutdown!` will be invoked.
-        expect(tracer.writer).to receive(:stop)
+        # On completion of the fork, `Datadog.shutdown!` will be invoked.
+        expect(::Datadog).to receive(:shutdown!)
 
         tracer.trace('main.process') do
           perform_job(job_class)
@@ -144,7 +143,7 @@ RSpec.describe 'Resque instrumentation' do
     let(:worker_class_1) { Class.new }
     let(:worker_class_2) { Class.new }
 
-    before(:each) do
+    before do
       # Remove the patch so it applies new patch
       remove_patch!(:resque)
 

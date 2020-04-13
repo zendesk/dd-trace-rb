@@ -57,7 +57,13 @@ class BaseAPITest < MiniTest::Test
 
   def setup
     # use a dummy tracer
-    @tracer = get_test_tracer()
+    @tracer = get_test_tracer
+    @trace_writer = FauxWriter.new
+
+    @tracer.trace_completed.subscribe(:test) do |trace|
+      @trace_writer.write(trace)
+    end
+
     Datadog.configuration[:grape][:tracer] = @tracer
   end
 end

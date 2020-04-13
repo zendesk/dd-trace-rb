@@ -6,7 +6,7 @@ require 'faraday'
 require 'ddtrace/ext/distributed'
 
 RSpec.describe 'Faraday middleware' do
-  let(:tracer) { get_test_tracer }
+  include_context 'trace components'
 
   let(:client) do
     ::Faraday.new('http://example.com') do |builder|
@@ -25,11 +25,11 @@ RSpec.describe 'Faraday middleware' do
   let(:configuration_options) { { tracer: tracer } }
 
   let(:request_span) do
-    tracer.writer.spans(:keep).find { |span| span.name == Datadog::Contrib::Faraday::Ext::SPAN_REQUEST }
+    trace_writer.spans(:keep).find { |span| span.name == Datadog::Contrib::Faraday::Ext::SPAN_REQUEST }
   end
 
-  before(:each) do
-    Datadog.configure do |c|
+  before do
+    Datadog.configure(global_settings) do |c|
       c.use :faraday, configuration_options
     end
   end

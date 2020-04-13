@@ -5,13 +5,15 @@ require 'ddtrace'
 require 'elasticsearch-transport'
 
 RSpec.describe Datadog::Contrib::Elasticsearch::Patcher do
+  include_context 'completed traces'
+
   let(:host) { ENV.fetch('TEST_ELASTICSEARCH_HOST', '127.0.0.1') }
   let(:port) { ENV.fetch('TEST_ELASTICSEARCH_PORT', '9200').to_i }
   let(:server) { "http://#{host}:#{port}" }
 
   let(:client) { Elasticsearch::Client.new(url: server) }
   let(:configuration_options) { { tracer: tracer } }
-  let(:tracer) { get_test_tracer }
+  let(:tracer) { new_tracer }
 
   before do
     Datadog.configure do |c|
@@ -32,7 +34,7 @@ RSpec.describe Datadog::Contrib::Elasticsearch::Patcher do
     subject(:request) { client.perform_request 'GET', '_cluster/health' }
 
     it 'creates a span' do
-      expect { request }.to change { tracer.writer.spans.first }.to Datadog::Span
+      expect { request }.to change { trace_writer.spans.first }.to Datadog::Span
     end
 
     context 'inside a span' do
@@ -45,13 +47,13 @@ RSpec.describe Datadog::Contrib::Elasticsearch::Patcher do
       end
 
       it 'creates a child request span' do
-        expect { request_inside_a_span }.to change { tracer.writer.spans.length }.to 2
+        expect { request_inside_a_span }.to change { trace_writer.spans.length }.to 2
       end
 
       it 'sets request span parent id and trace id' do
         request_inside_a_span
 
-        child, parent = tracer.writer.spans
+        child, parent = trace_writer.spans
 
         expect(child.parent_id).to eq(parent.span_id)
         expect(child.trace_id).to eq(parent.trace_id)
@@ -61,7 +63,7 @@ RSpec.describe Datadog::Contrib::Elasticsearch::Patcher do
     describe 'health request span' do
       before { request }
 
-      subject(:span) { tracer.writer.spans.first }
+      subject(:span) { trace_writer.spans.first }
 
       it { expect(span.name).to eq('elasticsearch.query') }
       it { expect(span.service).to eq('elasticsearch') }
@@ -76,7 +78,7 @@ RSpec.describe Datadog::Contrib::Elasticsearch::Patcher do
         request
       end
 
-      subject(:span) { tracer.writer.spans.first }
+      subject(:span) { trace_writer.spans.first }
 
       it { expect(span.name).to eq('elasticsearch.query') }
       it { expect(span.service).to eq('elasticsearch') }
@@ -108,12 +110,12 @@ RSpec.describe Datadog::Contrib::Elasticsearch::Patcher do
     subject(:request) { client.perform_request 'PUT', "#{index_name}/#{document_type}/#{document_id}", {}, document_body }
 
     it 'creates a span' do
-      expect { request }.to change { tracer.writer.spans.first }.to Datadog::Span
+      expect { request }.to change { trace_writer.spans.first }.to Datadog::Span
     end
 
     describe 'index request span' do
       before { request }
-      subject(:span) { tracer.writer.spans.first }
+      subject(:span) { trace_writer.spans.first }
 
       it_behaves_like 'analytics for integration' do
         let(:analytics_enabled_var) { Datadog::Contrib::Elasticsearch::Ext::ENV_ANALYTICS_ENABLED }

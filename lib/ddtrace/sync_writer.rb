@@ -42,6 +42,21 @@ module Datadog
       true
     end
 
+    def flush_completed
+      @flush_completed ||= FlushCompleted.new
+    end
+
+    # Flush completed event for worker
+    class FlushCompleted < Event
+      def initialize
+        super(:flush_completed)
+      end
+
+      def publish(response)
+        super(response)
+      end
+    end
+
     private
 
     def perform_concurrently(*tasks)
