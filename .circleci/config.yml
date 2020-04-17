@@ -46,7 +46,7 @@ step_init_bundle_checksum: &step_init_bundle_checksum
 step_bundle_install: &step_bundle_install
   run:
     name: Install gem dependencies
-    command: bundle install
+    command: bundle _2.1.2_ install
 step_rubocop: &step_rubocop
   run:
     name: Delint with Rubocop
