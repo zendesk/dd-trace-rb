@@ -602,13 +602,54 @@ RSpec.describe Datadog::Workers::AsyncTraceWriter do
     end
   end
 
+  describe '#thread_cpu_time_diff' do
+    def subject
+      writer.send(:thread_cpu_time_diff)
+    end
+
+    it 'calculates difference since last measurement' do
+      expect(Datadog::Utils::Time).to receive(:get_thread_cpu_time).and_return(1, 10)
+
+      is_expected.to eq(1)
+      is_expected.to eq(9)
+    end
+  end
+
   describe 'integration tests' do
-    let(:options) { { transport: transport, fork_policy: fork_policy } }
+    let(:options) { { transport: transport } }
     let(:transport) { Datadog::Transport::HTTP.default { |t| t.adapter :test, output } }
     let(:output) { [] }
 
+    describe 'health metrics' do
+      include_context 'health metrics'
+
+      let(:trace) { get_test_traces(1).first }
+      let(:writer_cpu_time) { double }
+
+      before do
+        allow(writer).to receive(:thread_cpu_time_diff).and_return(writer_cpu_time)
+      end
+
+      after do
+        if Datadog::Utils::Time::THREAD_CPU_TIME_SUPPORTED
+          expect(health_metrics).to have_received_lazy_writer_cpu_time(writer_cpu_time).at_least(:once)
+        else
+          expect(health_metrics).to have_received_lazy_writer_cpu_time(writer_cpu_time).never
+        end
+      end
+
+      it 'records health metrics' do
+        writer.perform
+        writer.write(trace) # write a trace to force #perform to run
+
+        try_wait_until { writer.running? && writer.run_loop? }
+      end
+    end
+
     describe 'forking' do
       before { skip unless PlatformHelpers.supports_fork? }
+
+      let(:options) { super().merge(fork_policy: fork_policy) }
 
       context 'when the process forks and a trace is written' do
         let(:traces) { get_test_traces(3) }

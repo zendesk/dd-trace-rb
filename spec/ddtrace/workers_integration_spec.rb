@@ -162,6 +162,28 @@ RSpec.describe 'Datadog::Workers::AsyncTransport integration tests' do
         expect(transport.helper_sent[200][:traces].to_s).to_not match(/discard/)
       end
     end
+
+    context 'health metrics' do
+      include_context 'health metrics'
+
+      let(:writer_cpu_time) { double }
+
+      before do
+        allow(writer.worker).to receive(:thread_cpu_time_diff).and_return(writer_cpu_time)
+      end
+
+      after do
+        if Datadog::Utils::Time::THREAD_CPU_TIME_SUPPORTED
+          expect(health_metrics).to have_received_lazy_writer_cpu_time.at_least(:once)
+        else
+          expect(health_metrics).to have_received_lazy_writer_cpu_time.never
+        end
+      end
+
+      it 'records health metrics' do
+        wait_for_flush
+      end
+    end
   end
 
   describe 'when setting service info' do
