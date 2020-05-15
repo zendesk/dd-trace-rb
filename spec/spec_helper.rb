@@ -62,17 +62,17 @@ RSpec.configure do |config|
 
   config.after do
     Datadog.shutdown!
-
-    Thread.list.each do |t|
-      location = t.backtrace_locations(0, 1).first.to_s
-      case location
-      when %r{/lib/ddtrace/workers/loop.rb}
-        puts 'kill'
-        t.kill
-      when %r{/lib/ddtrace/workers.rb}
-        puts 'kill'
-        t.kill
-      end
-    end
+    #
+    # Thread.list.each do |t|
+    #   location = t.backtrace_locations(0, 1).first.to_s
+    #   case location
+    #   when %r{/lib/ddtrace/workers/loop.rb}
+    #     puts 'kill'
+    #     t.kill
+    #   when %r{/lib/ddtrace/workers.rb}
+    #     puts 'kill'
+    #     t.kill
+    #   end
+    # end
   end
 end
