@@ -9,15 +9,21 @@ module Datadog
         module Protobuf
           module_function
 
-          def encode(events)
-            return if events.empty?
+          def encode(flushes)
+            return if flushes.empty?
 
-            builder = case events.first
-                      when Profiling::Events::StackSample
-                        Pprof::StackSample.new(events)
-                      else
-                        raise UnknownEventTypeError, events.first.class
-                      end
+            builder = Pprof::Builder.new
+
+            flushes.each do |flush|
+              converter = case flush.event_class
+                          when Profiling::Events::StackSample
+                            Pprof::StackSample.new(builder, flush.events)
+                          else
+                            raise UnknownEventTypeError, flush.event_class
+                          end
+
+              converter.add_events!
+            end
 
             profile = builder.to_profile
             Perftools::Profiles::Profile.encode(profile)
