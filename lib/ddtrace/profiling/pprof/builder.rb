@@ -7,23 +7,21 @@ module Datadog
     module Pprof
       # Generic profile building behavior
       class Builder
+        SAMPLE_VALUE_NO_VALUE = 0
         DESC_FRAME_OMITTED = 'frame omitted'.freeze
         DESC_FRAMES_OMITTED = 'frames omitted'.freeze
-        VALUE_TYPE_WALL = 'wall'.freeze
-        VALUE_UNIT_NANOSECONDS = 'nanoseconds'.freeze
 
         attr_reader \
-          :events,
           :functions,
           :locations,
+          :mappings,
           :sample_types,
           :samples,
           :string_table
 
-        def initialize(events)
-          @events = events
+        def initialize
           @profile = nil
-          @sample_types = []
+          @sample_types = MessageSet.new
           @samples = []
           @mappings = []
           @locations = MessageSet.new
@@ -32,14 +30,10 @@ module Datadog
         end
 
         def to_profile
-          @profile ||= build_profile(@events)
+          @profile ||= build_profile
         end
 
-        def build_profile(events)
-          @sample_types = build_sample_types
-          @samples = group_events(events) do |event, values|
-            build_sample(event, values)
-          end
+        def build_profile
           @mappings = build_mappings
 
           Perftools::Profiles::Profile.new(
@@ -52,60 +46,11 @@ module Datadog
           )
         end
 
-        def group_events(events)
-          # Event grouping in format:
-          # [key, (event, [values, ...])]
-          event_groups = {}
-
-          events.each do |event|
-            key = event_group_key(event) || rand
-            values = build_sample_values(event)
-
-            unless key.nil?
-              if event_groups.key?(key)
-                # Update values for group
-                group_values = event_groups[key][1]
-                group_values.each_with_index do |group_value, i|
-                  group_values[i] = group_value + values[i]
-                end
-              else
-                # Add new group
-                event_groups[key] = [event, values]
-              end
-            end
-          end
-
-          event_groups.collect do |_group_key, group|
-            yield(
-              # Event
-              group[0],
-              # Values
-              group[1]
-            )
-          end
-        end
-
-        def event_group_key(event)
-          raise NotImplementedError
-        end
-
-        def build_sample_types
-          raise NotImplementedError
-        end
-
         def build_value_type(type, unit)
           Perftools::Profiles::ValueType.new(
-            type: string_table.fetch(type),
-            unit: string_table.fetch(unit)
+            type: @string_table.fetch(type),
+            unit: @string_table.fetch(unit)
           )
-        end
-
-        def build_sample(event, values)
-          raise NotImplementedError
-        end
-
-        def build_sample_values(event)
-          raise NotImplementedError
         end
 
         def build_locations(backtrace_locations, length)
