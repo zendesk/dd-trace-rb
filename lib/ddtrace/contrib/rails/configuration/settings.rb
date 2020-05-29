@@ -77,17 +77,17 @@ module Datadog
             end
           end
 
-          option :tracer do |o|
-            o.delegate_to { Datadog.tracer }
-            o.on_set do |value|
-              Datadog.configuration[:action_cable][:tracer] = value
-              Datadog.configuration[:active_record][:tracer] = value
-              Datadog.configuration[:active_support][:tracer] = value
-              Datadog.configuration[:action_pack][:tracer] = value
-              Datadog.configuration[:action_view][:tracer] = value
-              Datadog.configuration[:rack][:tracer] = value
-            end
-          end
+          # option :tracer do |o|
+          #   o.delegate_to { Datadog.tracer }
+          #   o.on_set do |value|
+          #     Datadog.configuration[:action_cable][:tracer] = value
+          #     Datadog.configuration[:active_record][:tracer] = value
+          #     Datadog.configuration[:active_support][:tracer] = value
+          #     Datadog.configuration[:action_pack][:tracer] = value
+          #     Datadog.configuration[:action_view][:tracer] = value
+          #     Datadog.configuration[:rack][:tracer] = value
+          #   end
+          # end
         end
       end
     end

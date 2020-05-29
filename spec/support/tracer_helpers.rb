@@ -141,9 +141,9 @@ module TracerHelpers
   # one span is available.
   def span
     @span ||= begin
-      expect(spans).to have(1).item, "Requested the only span, but #{spans.size} spans are available"
-      spans.first
-    end
+                expect(spans).to have(1).item, "Requested the only span, but #{spans.size} spans are available"
+                spans.first
+              end
   end
 
   def clear_spans
@@ -151,5 +151,9 @@ module TracerHelpers
 
     @spans = nil
     @span = nil
+  end
+
+  def tracer
+    @tracer || instance_double(Datadog::Tracer, 'wrong tracer: from before Datadog.configure')
   end
 end

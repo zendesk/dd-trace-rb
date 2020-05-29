@@ -5,6 +5,8 @@ require 'ddtrace/patcher'
 require 'ddtrace/configuration'
 
 RSpec.describe Datadog::Configuration do
+  before { allow(Datadog::Configuration::Components).to receive(:build_tracer).and_call_original }
+
   context 'when extended by a class' do
     subject(:test_class) { stub_const('TestClass', Class.new { extend Datadog::Configuration }) }
 

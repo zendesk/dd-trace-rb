@@ -5,6 +5,8 @@ require 'ddtrace/runtime/container'
 
 RSpec.describe Datadog::Runtime::Container do
   describe '::descriptor' do
+    before { skip("revert me") }
+
     subject(:descriptor) { described_class.descriptor }
 
     around do |example|

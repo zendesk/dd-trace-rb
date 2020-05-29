@@ -6,6 +6,8 @@ require 'ddtrace/opentracer/helper'
 
 if Datadog::OpenTracer.supported?
   RSpec.describe Datadog::OpenTracer::GlobalTracer do
+    before { allow(Datadog::Configuration::Components).to receive(:build_tracer).and_call_original }
+
     include_context 'OpenTracing helpers'
 
     context 'when included into OpenTracing' do

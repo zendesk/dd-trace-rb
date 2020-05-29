@@ -43,6 +43,8 @@ MESSAGE
   end
 
   it 'manual instrumentation should still work' do
+    Datadog.configure {} # TODO move to the right place
+
     tracer.trace('a-test') {}
     expect(spans).to have(1).item
   end

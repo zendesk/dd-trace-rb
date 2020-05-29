@@ -21,7 +21,7 @@ RSpec.describe 'GraphQL patcher' do
       Datadog.configure do |c|
         c.use :graphql,
               service_name: 'graphql-test',
-              tracer: tracer,
+              # tracer: tracer,
               schemas: [schema]
       end
     end

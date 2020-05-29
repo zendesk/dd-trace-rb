@@ -22,7 +22,7 @@ RSpec.describe 'Rails with Sidekiq' do
   end
 
   before do
-    Datadog.configuration[:sidekiq][:tracer] = tracer
+    # Datadog.configuration[:sidekiq][:tracer] = tracer
 
     Sidekiq.configure_client do |config|
       config.redis = { url: ENV['REDIS_URL'] }

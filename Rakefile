@@ -654,14 +654,14 @@ task :ci do
       sh 'bundle exec appraisal contrib-old rake spec:faraday'
       # Rails minitests
       # We only test Rails 5+ because older versions require Bundler < 2.0
-      sh 'bundle exec appraisal rails5-mysql2 rake test:rails'
-      sh 'bundle exec appraisal rails5-postgres rake test:rails'
+      # sh 'bundle exec appraisal rails5-mysql2 rake test:rails'
+      # sh 'bundle exec appraisal rails5-postgres rake test:rails'
       sh 'bundle exec appraisal rails5-postgres-redis rake spec:railsredis'
       sh 'bundle exec appraisal rails5-postgres-redis-activesupport rake spec:railsredis'
       sh 'bundle exec appraisal rails5-postgres-sidekiq rake spec:railsactivejob'
       sh 'bundle exec appraisal rails5-postgres rake spec:railsdisableenv'
-      sh 'bundle exec appraisal rails6-mysql2 rake test:rails'
-      sh 'bundle exec appraisal rails6-postgres rake test:rails'
+      # sh 'bundle exec appraisal rails6-mysql2 rake test:rails'
+      # sh 'bundle exec appraisal rails6-postgres rake test:rails'
       sh 'bundle exec appraisal rails6-postgres-redis rake spec:railsredis'
       sh 'bundle exec appraisal rails6-postgres-redis-activesupport rake spec:railsredis'
       sh 'bundle exec appraisal rails6-postgres-sidekiq rake spec:railsactivejob'

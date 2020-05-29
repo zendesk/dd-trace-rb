@@ -6,6 +6,7 @@ require 'ddtrace/runtime/cgroup'
 # rubocop:disable Metrics/LineLength
 RSpec.describe Datadog::Runtime::Cgroup do
   describe '::descriptors' do
+    before { skip("revert me") }
     subject(:descriptors) { described_class.descriptors }
 
     context 'when the \'/proc/self/cgroup\' file is not present' do

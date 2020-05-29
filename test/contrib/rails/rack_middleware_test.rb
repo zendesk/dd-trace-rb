@@ -1,20 +1,69 @@
 require 'helper'
+require 'minitest/around/unit'
 
 require 'contrib/rails/test_helper'
 
 # rubocop:disable Metrics/ClassLength
 class FullStackTest < ActionDispatch::IntegrationTest
-  setup do
-    @original_tracer = Datadog.configuration[:rails][:tracer]
-    @tracer = get_test_tracer
+  # setup do
+  #   # allow(Datadog::Configuration::Components).to receive(:build_tracer) do
+  #   #   if @tracer
+  #   #     METHODS.each do |method|
+  #   #       allow(@tracer).to receive(method).and_raise("wrong tracer")
+  #   #     end
+  #   #   end
+  #   #
+  #   #   @tracer = get_test_tracer
+  #   # end
+  #
+  #
+  #
+  #   # mock = Minitest::Mock.new
+  #   # def mock.apply
+  #   #   if @tracer
+  #   #     METHODS.each do |method|
+  #   #       allow(@tracer).to receive(method).and_raise("wrong tracer")
+  #   #     end
+  #   #   end
+  #   #
+  #   #   @tracer = get_test_tracer
+  #   # end
+  #
+  #   # do
+  #   # @original_tracer = Datadog.configuration[:rails][:tracer]
+  #   Datadog.configure do |c|
+  #     c.use :rails #, tracer: @tracer
+  #   end
+  #   # end
+  #
+  #   @tracer = Datadog.tracer
+  # end
 
-    Datadog.configure do |c|
-      c.use :rails, tracer: @tracer
+  # teardown do
+  #   Datadog.registry[:rails].reset_configuration!
+  #   Datadog.configuration[:rails].reset_options!
+  # end
+
+  def around(&block)
+    mock = -> (*_) {
+      raise "wrong tracer" if @tracer
+      @tracer = get_test_tracer
+    }
+
+    Datadog::Configuration::Components.stub(:build_tracer, mock) do
+      Datadog.configure do |c|
+        c.use :rails #, tracer: @tracer
+      end
+
+      @tracer = Datadog.tracer
+
+      @tracer.writer.spans(:clear)
+
+      block.call
+
+      Datadog.registry[:rails].reset_configuration!
+      Datadog.configuration[:rails].reset_options!
     end
-  end
-
-  teardown do
-    Datadog.configuration[:rails][:tracer] = @original_tracer
   end
 
   test 'a full request is properly traced' do
@@ -29,11 +78,11 @@ class FullStackTest < ActionDispatch::IntegrationTest
     # either by m or p (MySQL or PostGreSQL) so the database span is always
     # the first one. Would fail with an adapter named z-something.
     if Datadog::Contrib::ActiveRecord::Events::Instantiation.supported?
-      assert_equal(spans.length, 6)
-      instantiation_span, database_span, request_span, controller_span, cache_span, render_span = spans
+      assert_equal(spans.length, 7)
+      instantiation_span, mysql_span, database_span, request_span, controller_span, cache_span, render_span = spans
     else
-      assert_equal(spans.length, 5)
-      database_span, request_span, controller_span, cache_span, render_span = spans
+      assert_equal(spans.length, 6)
+      mysql_span, database_span, request_span, controller_span, cache_span, render_span = spans
     end
 
     assert_equal(request_span.name, 'rack.request')
@@ -90,7 +139,7 @@ class FullStackTest < ActionDispatch::IntegrationTest
     # get spans
     spans = @tracer.writer.spans()
     assert_operator(spans.length, :>=, 2, 'there should be at least 2 spans')
-    request_span, controller_span = spans
+    mysql_span, request_span, controller_span = spans
 
     assert_equal(controller_span.name, 'rails.action_controller')
     assert_equal(controller_span.status, 1)
@@ -118,7 +167,7 @@ class FullStackTest < ActionDispatch::IntegrationTest
     # get spans
     spans = @tracer.writer.spans()
     assert_operator(spans.length, :>=, 2, 'there should be at least 2 spans')
-    request_span, controller_span = spans
+    mysql_span, request_span, controller_span = spans
 
     assert_equal(controller_span.name, 'rails.action_controller')
     assert_equal(controller_span.status, 1)
@@ -144,7 +193,7 @@ class FullStackTest < ActionDispatch::IntegrationTest
     # get spans
     spans = @tracer.writer.spans()
     assert_operator(spans.length, :>=, 2, 'there should be at least 2 spans')
-    request_span, controller_span = spans
+    mysql_span, request_span, controller_span = spans
 
     assert_equal(controller_span.name, 'rails.action_controller')
     assert_equal(controller_span.status, 1)
@@ -182,10 +231,11 @@ class FullStackTest < ActionDispatch::IntegrationTest
 
     # Check spans
     spans = @tracer.writer.spans
-    assert_equal(2, spans.length)
+    assert_operator(spans.length, :>=, 2)
 
-    rack_span = spans.first
-    controller_span = spans.last
+    mysql_span = spans[0]
+    rack_span = spans[1]
+    controller_span = spans[2]
 
     # Rack span
     assert_equal(rack_span.status, 1, 'span should be flagged as an error')
@@ -204,7 +254,8 @@ class FullStackTest < ActionDispatch::IntegrationTest
     # get spans
     spans = @tracer.writer.spans()
     assert_operator(spans.length, :>=, 1, 'there should be at least 1 span')
-    request_span = spans[0]
+    mysql_span = spans[0]
+    request_span = spans[1]
 
     assert_equal('rack.request', request_span.name)
     assert_equal(request_span.span_type, 'web')

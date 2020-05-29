@@ -4,6 +4,8 @@ require 'datadog/statsd'
 require 'ddtrace/configuration/components'
 
 RSpec.describe Datadog::Configuration::Components do
+  before { allow(Datadog::Configuration::Components).to receive(:build_tracer).and_call_original }
+
   subject(:components) { described_class.new(settings) }
   let(:settings) { Datadog::Configuration::Settings.new }
 

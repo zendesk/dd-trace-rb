@@ -1,20 +1,43 @@
 require 'helper'
+require 'minitest/around/unit'
 
 require 'contrib/rails/test_helper'
 
 # rubocop:disable Metrics/ClassLength
 class TracingControllerTest < ActionController::TestCase
-  setup do
-    @original_tracer = Datadog.configuration[:rails][:tracer]
-    @tracer = get_test_tracer
+  # setup do
+  #   @original_tracer = Datadog.configuration[:rails][:tracer]
+  #   @tracer = get_test_tracer
+  #
+  #   Datadog.configure do |c|
+  #     c.use :rails, tracer: @tracer
+  #   end
+  # end
+  #
+  # teardown do
+  #   Datadog.configuration[:rails][:tracer] = @original_tracer
+  # end
 
-    Datadog.configure do |c|
-      c.use :rails, tracer: @tracer
+  def around(&block)
+    mock = -> (*_) {
+      raise "wrong tracer" if @tracer
+      @tracer = get_test_tracer
+    }
+
+    Datadog::Configuration::Components.stub(:build_tracer, mock) do
+      Datadog.configure do |c|
+        c.use :rails #, tracer: @tracer
+      end
+
+      @tracer = Datadog.tracer
+
+      @tracer.writer.spans(:clear)
+
+      block.call
+
+      Datadog.registry[:rails].reset_configuration!
+      Datadog.configuration[:rails].reset_options!
     end
-  end
-
-  teardown do
-    Datadog.configuration[:rails][:tracer] = @original_tracer
   end
 
   test 'request is properly traced' do

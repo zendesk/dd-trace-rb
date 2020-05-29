@@ -5,7 +5,7 @@ RSpec.shared_context 'Rails test application' do
 
   before do
     Datadog.configuration[:rails].reset_options!
-    Datadog.configuration[:rails][:tracer] = tracer
+    # Datadog.configuration[:rails][:tracer] = tracer
 
     reset_rails_configuration!
   end
