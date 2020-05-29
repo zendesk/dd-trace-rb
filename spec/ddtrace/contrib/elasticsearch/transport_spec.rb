@@ -22,8 +22,8 @@ RSpec.describe 'Elasticsearch::Transport::Client tracing' do
   let(:server) { "http://#{host}:#{port}" }
 
   let(:client) { Elasticsearch::Client.new(url: server) }
-  let(:tracer) { get_test_tracer }
-  let(:configuration_options) { { tracer: tracer } }
+  # let(:tracer) { get_test_tracer }
+  let(:configuration_options) { { } }
 
   let(:spans) { tracer.writer.spans }
   let(:span) { spans.first }

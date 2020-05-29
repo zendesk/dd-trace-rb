@@ -26,8 +26,8 @@ RSpec.describe Datadog::Contrib::DelayedJob::Plugin, :delayed_job_active_record 
     end)
   end
 
-  let(:tracer) { get_test_tracer }
-  let(:configuration_options) { { tracer: tracer } }
+  # let(:tracer) { get_test_tracer }
+  let(:configuration_options) { { } }
 
   before do
     Datadog.configure { |c| c.use :delayed_job, configuration_options }

@@ -6,7 +6,7 @@ require 'ddtrace'
 require 'ddtrace/contrib/sequel/patcher'
 
 RSpec.describe 'Sequel configuration' do
-  let(:tracer) { get_test_tracer }
+  # let(:tracer) { get_test_tracer }
   let(:spans) { tracer.writer.spans }
   let(:span) { spans.first }
 

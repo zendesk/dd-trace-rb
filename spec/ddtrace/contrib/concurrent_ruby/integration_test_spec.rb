@@ -12,8 +12,8 @@ RSpec.describe 'ConcurrentRuby integration tests' do
     remove_patch!(:concurrent_ruby)
   end
 
-  let(:tracer) { get_test_tracer }
-  let(:configuration_options) { { tracer: tracer } }
+  # let(:tracer) { get_test_tracer }
+  let(:configuration_options) { { } }
 
   subject(:deferred_execution) do
     outer_span = tracer.trace('outer_span')

@@ -7,8 +7,8 @@ require 'shoryuken'
 RSpec.describe Datadog::Contrib::Shoryuken::Tracer do
   let(:shoryuken_tracer) { described_class.new }
 
-  let(:tracer) { get_test_tracer }
-  let(:configuration_options) { { tracer: tracer } }
+  # let(:tracer) { get_test_tracer }
+  let(:configuration_options) { { } }
   let(:spans) { tracer.writer.spans }
   let(:span) { spans.first }
 

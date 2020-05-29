@@ -16,7 +16,7 @@ RSpec.describe 'ActionCable Rack override' do
   include Rack::Test::Methods
   include_context 'Rails test application'
 
-  # let(:tracer) { get_test_tracer }
+  # # let(:tracer) { get_test_tracer }
   let(:spans) { tracer.writer.spans(:keep) }
 
   let(:options) { {  } }

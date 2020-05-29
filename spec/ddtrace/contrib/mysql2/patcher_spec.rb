@@ -5,7 +5,7 @@ require 'ddtrace'
 require 'mysql2'
 
 RSpec.describe 'Mysql2::Client patcher' do
-  let(:tracer) { get_test_tracer }
+  # let(:tracer) { get_test_tracer }
   let(:service_name) { 'my-sql' }
   let(:configuration_options) { { tracer: tracer, service_name: service_name } }
 

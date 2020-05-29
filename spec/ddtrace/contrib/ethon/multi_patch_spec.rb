@@ -4,8 +4,8 @@ require 'ddtrace/contrib/ethon/shared_examples'
 require 'ddtrace/contrib/analytics_examples'
 
 RSpec.describe Datadog::Contrib::Ethon::MultiPatch do
-  let(:tracer) { get_test_tracer }
-  let(:configuration_options) { { tracer: tracer } }
+  # let(:tracer) { get_test_tracer }
+  let(:configuration_options) { { } }
 
   before do
     Datadog.configure do |c|

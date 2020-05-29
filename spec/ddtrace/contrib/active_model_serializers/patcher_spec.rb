@@ -11,8 +11,8 @@ require 'ddtrace/ext/http'
 RSpec.describe 'ActiveModelSerializers patcher' do
   include_context 'AMS serializer'
 
-  let(:tracer) { get_test_tracer }
-  let(:configuration_options) { { tracer: tracer } }
+  # let(:tracer) { get_test_tracer }
+  let(:configuration_options) { { } }
 
   def all_spans
     tracer.writer.spans(:keep)

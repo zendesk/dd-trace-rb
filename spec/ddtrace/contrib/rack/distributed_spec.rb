@@ -8,7 +8,7 @@ require 'ddtrace/contrib/rack/middlewares'
 RSpec.describe 'Rack integration distributed tracing' do
   include Rack::Test::Methods
 
-  let(:tracer) { get_test_tracer }
+  # let(:tracer) { get_test_tracer }
   let(:rack_options) { { tracer: tracer } }
 
   let(:spans) { tracer.writer.spans }

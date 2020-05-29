@@ -5,7 +5,7 @@ require 'ddtrace'
 RSpec.describe 'gRPC integration test' do
   include GRPCHelper
 
-  let(:tracer) { get_test_tracer }
+  # let(:tracer) { get_test_tracer }
 
   let(:spans) do
     tracer.writer.spans

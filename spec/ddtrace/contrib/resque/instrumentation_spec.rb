@@ -7,7 +7,7 @@ require 'ddtrace'
 RSpec.describe 'Resque instrumentation' do
   include_context 'Resque job'
 
-  let(:tracer) { get_test_tracer }
+  # let(:tracer) { get_test_tracer }
   let(:spans) { tracer.writer.spans }
   let(:span) { spans.first }
 
@@ -15,7 +15,7 @@ RSpec.describe 'Resque instrumentation' do
   let(:host) { ENV.fetch('TEST_REDIS_HOST', '127.0.0.1') }
   let(:port) { ENV.fetch('TEST_REDIS_PORT', 6379) }
 
-  let(:configuration_options) { { tracer: tracer } }
+  let(:configuration_options) { { } }
 
   before(:each) do
     # Setup Resque to use Redis

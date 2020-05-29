@@ -10,8 +10,8 @@ require 'ddtrace/contrib/sinatra/tracer'
 RSpec.describe 'Sinatra instrumentation' do
   include Rack::Test::Methods
 
-  let(:tracer) { get_test_tracer }
-  let(:configuration_options) { { tracer: tracer } }
+  # let(:tracer) { get_test_tracer }
+  let(:configuration_options) { { } }
 
   let(:span) { spans.find { |x| x.name == Datadog::Contrib::Sinatra::Ext::SPAN_REQUEST } }
   let(:route_span) { spans.find { |x| x.name == Datadog::Contrib::Sinatra::Ext::SPAN_ROUTE } }

@@ -3,7 +3,7 @@ require 'ddtrace'
 require 'net/http'
 
 RSpec.describe 'net/http patcher' do
-  let(:tracer) { get_test_tracer }
+  # let(:tracer) { get_test_tracer }
   let(:host) { 'example.com' }
 
   before do

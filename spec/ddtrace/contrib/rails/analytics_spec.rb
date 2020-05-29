@@ -2,8 +2,8 @@ require 'ddtrace/contrib/analytics_examples'
 require 'ddtrace/contrib/rails/rails_helper'
 
 RSpec.describe 'Rails trace analytics' do
-  let(:tracer) { get_test_tracer }
-  let(:configuration_options) { { tracer: tracer } }
+  # let(:tracer) { get_test_tracer }
+  let(:configuration_options) { { } }
 
   before(:each) do
     Datadog.configure do |c|

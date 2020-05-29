@@ -6,11 +6,11 @@ require 'ddtrace'
 require 'ddtrace/contrib/excon/middleware'
 
 RSpec.describe Datadog::Contrib::Excon::Middleware do
-  let(:tracer) { get_test_tracer }
+  # let(:tracer) { get_test_tracer }
 
   let(:connection_options) { { mock: true } }
   let(:middleware_options) { {} }
-  let(:configuration_options) { { tracer: tracer } }
+  let(:configuration_options) { { } }
 
   let(:request_span) do
     tracer.writer.spans(:keep).find { |span| span.name == Datadog::Contrib::Excon::Ext::SPAN_REQUEST }

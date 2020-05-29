@@ -15,8 +15,8 @@ end
 RSpec.describe 'ActionCable patcher' do
   before { skip('ActionCable not supported') unless Datadog::Contrib::ActionCable::Integration.compatible? }
 
-  let(:tracer) { get_test_tracer }
-  let(:configuration_options) { { tracer: tracer } }
+  # let(:tracer) { get_test_tracer }
+  let(:configuration_options) { { } }
 
   before do
     Datadog.configure do |c|

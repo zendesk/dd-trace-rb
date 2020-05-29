@@ -15,7 +15,7 @@ RSpec.describe 'net/http miniapp tests' do
   let(:uri) { "http://#{host}:#{port}" }
 
   let(:client) { Net::HTTP.new(host, port) }
-  let(:tracer) { get_test_tracer }
+  # let(:tracer) { get_test_tracer }
 
   before(:each) do
     Datadog.configure { |c| c.use :http, tracer: tracer }

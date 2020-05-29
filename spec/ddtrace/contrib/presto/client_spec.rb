@@ -6,8 +6,8 @@ require 'presto-client'
 require 'ddtrace/contrib/analytics_examples'
 
 RSpec.describe 'Presto::Client instrumentation' do
-  let(:tracer) { get_test_tracer }
-  let(:configuration_options) { { tracer: tracer } }
+  # let(:tracer) { get_test_tracer }
+  let(:configuration_options) { { } }
 
   let(:client) do
     Presto::Client.new(

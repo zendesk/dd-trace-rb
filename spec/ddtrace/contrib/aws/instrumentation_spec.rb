@@ -7,8 +7,8 @@ require 'ddtrace/contrib/aws/patcher'
 require 'ddtrace/ext/http'
 
 RSpec.describe 'AWS instrumentation' do
-  let(:tracer) { get_test_tracer }
-  let(:configuration_options) { { tracer: tracer } }
+  # let(:tracer) { get_test_tracer }
+  let(:configuration_options) { { } }
 
   let(:client) { ::Aws::S3::Client.new(stub_responses: responses) }
   let(:responses) { true }

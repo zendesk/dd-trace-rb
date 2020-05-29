@@ -7,8 +7,8 @@ require 'ddtrace'
 require 'ddtrace/contrib/sequel/integration'
 
 RSpec.describe 'Sequel instrumentation' do
-  let(:tracer) { get_test_tracer }
-  let(:configuration_options) { { tracer: tracer } }
+  # let(:tracer) { get_test_tracer }
+  let(:configuration_options) { { } }
   let(:sequel) do
     Sequel.sqlite(':memory:').tap do |s|
       Datadog.configure(s, tracer: tracer)

@@ -5,8 +5,8 @@ require 'ddtrace'
 require_relative 'app'
 
 RSpec.describe 'ActiveRecord instrumentation' do
-  let(:tracer) { get_test_tracer }
-  let(:configuration_options) { { tracer: tracer } }
+  # let(:tracer) { get_test_tracer }
+  let(:configuration_options) { { } }
 
   before(:each) do
     # Prevent extra spans during tests

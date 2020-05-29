@@ -8,7 +8,7 @@ require 'ddtrace'
 RSpec.describe 'Redis mini app test' do
   before(:each) { skip unless ENV['TEST_DATADOG_INTEGRATION'] }
 
-  let(:tracer) { get_test_tracer }
+  # let(:tracer) { get_test_tracer }
 
   def all_spans
     tracer.writer.spans(:keep)
