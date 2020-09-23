@@ -27,6 +27,8 @@ RSpec.describe Datadog::Contrib::DelayedJob::Plugin, :delayed_job_active_record 
   end
 
   let(:configuration_options) { {} }
+  let(:span) { spans.first }
+  let(:enqueue_span) { spans.last }
 
   before do
     Datadog.configure { |c| c.use :delayed_job, configuration_options }
@@ -64,7 +66,7 @@ RSpec.describe Datadog::Contrib::DelayedJob::Plugin, :delayed_job_active_record 
     subject(:job_run) { Delayed::Job.enqueue(sample_job_object.new, job_params) }
 
     it 'creates a span' do
-      expect { job_run }.to change { fetch_spans.first }.to be_instance_of(Datadog::Span)
+      expect { job_run }.to change { fetch_spans }.to all(be_instance_of(Datadog::Span))
     end
 
     context 'when the job looks like Active Job' do
@@ -74,17 +76,11 @@ RSpec.describe Datadog::Contrib::DelayedJob::Plugin, :delayed_job_active_record 
 
       it 'has resource name equal to underlying ActiveJob class name' do
         expect(span.resource).to eq('UnderlyingJobClass')
+        expect(enqueue_span.resource).to eq('UnderlyingJobClass')
       end
     end
 
-    describe 'created span' do
-      before { job_run }
-
-      it 'has service name taken from configuration' do
-        expect(span.service).not_to be_nil
-        expect(span.service).to eq(Datadog.configuration[:delayed_job][:service_name])
-      end
-
+    shared_context 'delayed_job common tags and resource' do
       it 'has resource name equal to job name' do
         expect(span.resource).to eq('SampleJob')
       end
@@ -92,25 +88,6 @@ RSpec.describe Datadog::Contrib::DelayedJob::Plugin, :delayed_job_active_record 
       it "span tags doesn't include queue name" do
         expect(span.get_tag('delayed_job.queue')).to be_nil
       end
-
-      it 'span tags include job id' do
-        expect(span.get_tag('delayed_job.id')).not_to be_nil
-      end
-
-      it 'span tags include priority' do
-        expect(span.get_tag('delayed_job.priority')).not_to be_nil
-      end
-
-      it 'span tags include number of attempts' do
-        expect(span.get_tag('delayed_job.attempts')).to eq(0)
-      end
-
-      it_behaves_like 'analytics for integration' do
-        let(:analytics_enabled_var) { Datadog::Contrib::DelayedJob::Ext::ENV_ANALYTICS_ENABLED }
-        let(:analytics_sample_rate_var) { Datadog::Contrib::DelayedJob::Ext::ENV_ANALYTICS_SAMPLE_RATE }
-      end
-
-      it_behaves_like 'measured span for integration', true
 
       context 'when queue name is set' do
         let(:queue_name) { 'queue_name' }
@@ -121,14 +98,55 @@ RSpec.describe Datadog::Contrib::DelayedJob::Plugin, :delayed_job_active_record 
         end
       end
 
+      it 'span tags include priority' do
+        expect(span.get_tag('delayed_job.priority')).not_to be_nil
+      end
+
       context 'when priority is set' do
         let(:priority) { 12345 }
         let(:job_params) { { priority: priority } }
 
-        it 'span tags include job id' do
+        it 'span tags include job priority' do
           expect(span.get_tag('delayed_job.priority')).to eq(priority)
         end
       end
+
+      it_behaves_like 'analytics for integration' do
+        let(:analytics_enabled_var) { Datadog::Contrib::DelayedJob::Ext::ENV_ANALYTICS_ENABLED }
+        let(:analytics_sample_rate_var) { Datadog::Contrib::DelayedJob::Ext::ENV_ANALYTICS_SAMPLE_RATE }
+      end
+
+      it_behaves_like 'measured span for integration', true
+    end
+
+    describe 'invoke span' do
+      include_context 'delayed_job common tags and resource'
+      before { job_run }
+
+      it 'has service name taken from configuration' do
+        expect(span.service).not_to be_nil
+        expect(span.service).to eq(Datadog.configuration[:delayed_job][:service_name])
+      end
+
+      it 'span tags include job id' do
+        expect(span.get_tag('delayed_job.id')).not_to be_nil
+      end
+
+      it 'span tags include number of attempts' do
+        expect(span.get_tag('delayed_job.attempts')).to eq(0)
+      end
+    end
+
+    describe 'enqueue span' do
+      let(:span) { enqueue_span }
+      before { job_run }
+
+      it 'has service name taken from configuration' do
+        expect(span.service).not_to be_nil
+        expect(span.service).to eq(Datadog.configuration[:delayed_job][:client_service_name])
+      end
+
+      include_context 'delayed_job common tags and resource'
     end
   end
 end
